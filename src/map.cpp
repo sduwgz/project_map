@@ -123,11 +123,14 @@ double Map::validScore(int a, int b) {
 
 double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<int> & mole, const vector<int> & gene) {
     assert(moleB<=moleE && geneB<=geneE && moleE<mole.size() && geneB<gene.size());
-    int moleLen = 0, geneLen = 0;
+    int moleLen = 0, geneLen = 0, miss = 0;
     for(int i=moleB; i<=moleE; i++) {
         moleLen += mole[i];
     }
     for(int j=geneB; j<=geneE; j++) {
+        if(gene[j] < 1500){
+            ++ miss;
+        }
         geneLen += gene[j];
     }
     int delta = moleLen - geneLen;
@@ -139,9 +142,9 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
 
         return guss(delta) + pI(moleE - moleB + 1) - background(delta);
     }
-    else if(geneE - geneB != 0) {
+    else if(geneE - geneB - miss != 0) {
         //Delete
-        int del = (int)((geneE - geneB + 0.0) / moleLen * 10000 + 0.5);
+        int del = (int)((geneE - geneB - miss + 0.0) / moleLen * 10000 + 0.5);
         if(del < 1) {
             del = 1;
         }
@@ -156,8 +159,7 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     /*拟合得到的背景分布
         return log(1/sqrt(2*3.14)/sigma*exp(-(moleLen-geneLen-mu)*(moleLen-geneLen-mu)/2/sigma/sigma)*pow(beta,moleE-moleB)*pow(alpha,geneE-geneB)) 
             - log(1/sqrt(2*3.14)/509771*exp(-(moleLen-geneLen-1466)*(moleLen-geneLen-1466)/2/509771/509771)); 
-*/
-/*考虑delete
+    考虑delete
     return log(1/sqrt(2*3.14)/sigma*exp(-(moleLen-geneLen-mu)*(moleLen-geneLen-mu)/2/sigma/sigma)*(1-alpha)*pow(alpha,geneE-geneB)) 
         - log(1/sqrt(2*3.14)/10840*exp(-(moleLen-geneLen-1870)*(moleLen-geneLen-1870)/2/10840/10840)); 
 */
