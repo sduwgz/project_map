@@ -1,0 +1,94 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+DP	map.py	/^def DP(mole, ref):$/;"	f
+__author__	script/get_map_result_idx.py	/^__author__ = "Li Yanbo"$/;"	v
+background	score.py	/^def background(delta):$/;"	f
+data	script/get_map_result_idx.py	/^        data = line.split()$/;"	v
+end_pos	check.py	/^        end_pos = mapp[i][1]$/;"	v
+end_site	check.py	/^            end_site = ref[end_pos]$/;"	v
+end_site	script/bit_tool.py	/^        end_site = int(line.split()[2])$/;"	v
+end_site	script/bit_tool.py	/^        end_site = int(line[1:-2].split(',')[1])$/;"	v
+end_site	script/compare.py	/^            end_site = int(line.split()[2])$/;"	v
+end_site	script/small_tool.py	/^end_site = int(sys.argv[3])$/;"	v
+end_site	script/transform.py	/^            end_site = int(line.split()[3])$/;"	v
+end_site	script/transform.py	/^        end_site = int(line.split()[3])$/;"	v
+enzyme	script/get_map_result_idx.py	/^    enzyme = readRef()$/;"	v
+f	script/get_map_result_idx.py	/^    f = open("map_result","r") #align start location and end location$/;"	v
+getFileList	script/deal_Map_loc_2.py	/^def getFileList(filePath):$/;"	f
+get_score	score.py	/^def get_score(mole_blocks, ref_blocks):$/;"	f
+guss	score.py	/^def guss(delta):$/;"	f
+huada_map	script/compare.py	/^        huada_map = read_map(f)$/;"	v
+line	script/get_map_result_idx.py	/^        line = f.readline().strip()$/;"	v
+line	script/transform.py	/^        line = f.readline()$/;"	v
+line	script/transform.py	/^    line = f.readline()$/;"	v
+m	score.py	/^    m = [5000]$/;"	v
+m1	score.py	/^    m1 = [[6934],[14541],[25342],[11226],[14923],[8040],[6489],[10582,3424]]$/;"	v
+m2	score.py	/^    m2 = [[6934],[14541],[25342],[11226],[14923],[8040],[17282],[3424]]$/;"	v
+main	script/deal_Map_loc_2.py	/^def main():$/;"	f
+main	script/get_length.py	/^def main():$/;"	f
+main	script/get_new_ref.py	/^def main():$/;"	f
+main	script/get_ref_dis.py	/^def main():$/;"	f
+main	script/get_right_map.py	/^def main():$/;"	f
+match	script/compare.py	/^    match = 0$/;"	v
+mole	score.py	/^    mole = [[1825,1000],[1743],[8081],[3836],[3396],[5158],[2698],[3864],[5521],[5968],[10000,6729],[13970],[21305, 10000],[12926]]$/;"	v
+mole	script/bit_tool.py	/^        mole = []$/;"	v
+moleEndMatchLoc	script/get_map_result_idx.py	/^        moleEndMatchLoc = int(data[5])$/;"	v
+moleIndex	script/get_map_result_idx.py	/^        moleIndex = int(data[0])$/;"	v
+moleStartMatchLoc	script/get_map_result_idx.py	/^        moleStartMatchLoc = int(data[4])$/;"	v
+mole_id	script/bit_tool.py	/^        mole_id = int(line.split()[0])$/;"	v
+mole_id	script/small_tool.py	/^mole_id = int(sys.argv[1])$/;"	v
+moles	script/bit_tool.py	/^    moles = init.read_moles(f)$/;"	v
+moles	script/small_tool.py	/^    moles = init.read_moles(f)$/;"	v
+moleset	map.py	/^        moleset = init.read_moles(f)$/;"	v
+number	script/transform.py	/^            number = int(line.split()[0])$/;"	v
+number	script/transform.py	/^        number = int(line.split()[0])$/;"	v
+out	script/get_map_result_idx.py	/^    out = open("Map_Idx_In_Ref","w")$/;"	v
+pD	score.py	/^def pD(k):$/;"	f
+pI	score.py	/^def pI(k):$/;"	f
+r	score.py	/^    r = [7000]$/;"	v
+r1	score.py	/^    r1 = [[5900,800],[14110],[7600,16400],[1230,470,6200],[2330,620,12400],[3000,4700],[7300],[14100]]$/;"	v
+r2	score.py	/^    r2 = [[6700],[14400],[24800],[750,10900],[15000],[8000],[18400],[3340]]$/;"	v
+readInputBnx	script/get_length.py	/^def readInputBnx():$/;"	f
+readMqrMap	script/get_length.py	/^def readMqrMap():$/;"	f
+readMqrMap	script/get_right_map.py	/^def readMqrMap():$/;"	f
+readRef	script/get_map_result_idx.py	/^def readRef():$/;"	f
+readRightLocIdx	script/get_right_map.py	/^def readRightLocIdx():$/;"	f
+read_First_Map	script/deal_Map_loc_2.py	/^def read_First_Map():$/;"	f
+read_map	check.py	/^def read_map(f):$/;"	f
+read_map	init.py	/^def read_map(f):$/;"	f
+read_map	script/compare.py	/^def read_map(f):$/;"	f
+read_map	script/init.py	/^def read_map(f):$/;"	f
+read_mean	script/deal_Map_loc_2.py	/^def read_mean(filename):$/;"	f
+read_moles	init.py	/^def read_moles(f):$/;"	f
+read_moles	script/init.py	/^def read_moles(f):$/;"	f
+read_new_ref	script/get_new_ref.py	/^def read_new_ref():$/;"	f
+read_ref	check.py	/^def read_ref(f):$/;"	f
+read_ref	init.py	/^def read_ref(f):$/;"	f
+read_ref	script/init.py	/^def read_ref(f):$/;"	f
+ref	check.py	/^        ref = read_ref(f)$/;"	v
+ref	map.py	/^        ref = init.read_ref(f)$/;"	v
+ref	score.py	/^    ref = [[2837],[2062],[7963],[4015],[3526],[5188],[2833],[3831],[5280],[6240],[16985],[10000,4055],[31788],[12825]]$/;"	v
+ref	script/bit_tool.py	/^    ref = init.read_ref(f)$/;"	v
+ref	script/small_tool.py	/^    ref = init.read_ref(f)$/;"	v
+result	script/bit_tool.py	/^        result = []$/;"	v
+result	script/small_tool.py	/^result = []$/;"	v
+score	script/transform.py	/^        score = float((line.split()[1]))$/;"	v
+start_pos	check.py	/^        start_pos = mapp[i][0]$/;"	v
+start_site	check.py	/^            start_site = ref[start_pos]$/;"	v
+start_site	script/bit_tool.py	/^        start_site = int(line.split()[1])$/;"	v
+start_site	script/bit_tool.py	/^        start_site = int(line[1:-2].split(',')[0])$/;"	v
+start_site	script/compare.py	/^            start_site = int(line.split()[1])$/;"	v
+start_site	script/small_tool.py	/^start_site = int(sys.argv[2])$/;"	v
+start_site	script/transform.py	/^            start_site = int(line.split()[2])$/;"	v
+start_site	script/transform.py	/^        start_site = int(line.split()[2])$/;"	v
+state	script/bit_tool.py	/^            state = 0$/;"	v
+state	script/bit_tool.py	/^            state = 1$/;"	v
+state	script/bit_tool.py	/^        state = 0$/;"	v
+state	script/bit_tool.py	/^        state = 1$/;"	v
+state	script/bit_tool.py	/^state = 0$/;"	v
+total	script/compare.py	/^    total = 0$/;"	v
+valid_score	score.py	/^def valid_score(mole_block, ref_block):$/;"	f
