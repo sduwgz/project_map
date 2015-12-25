@@ -53,65 +53,35 @@ bool Map::whole_map_score(vector<Mole>& moleSet,vector <int>& gene) {
     cout<<"[Info] : begin whole map score:"<<endl;
     int iter = 0;
     double totalScore;
-    //while (true) {
-        cout << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
-        cerr << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
+    cout << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
+    cerr << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
 
-        int right_count = 0;
-        totalScore = 0.0;
-        for (int i=0; i<moleSet.size(); i=i+2) {
-            assert(moleSet[i].id == -moleSet[i+1].id);
-            moleSet[i].mapRet_reset();
-            moleSet[i+1].mapRet_reset();
-            if (moleSet[i].dis.size()<MINCNT) continue;
-            whole_DP_score(moleSet[i],gene);
-            whole_DP_score(moleSet[i+1],gene);
-            if (moleSet[i].mapRet.label || moleSet[i+1].mapRet.label) {
-                if (moleSet[i].mapRet.label && moleSet[i+1].mapRet.label) {
-                    totalScore += double(max(moleSet[i].mapRet.score,moleSet[i+1].mapRet.score));
-                } else if (moleSet[i].mapRet.label) {
-                    totalScore += double(moleSet[i].mapRet.score);
-                } else {
-                    totalScore += double(moleSet[i+1].mapRet.score);
-                }
-                right_count ++;
+    int right_count = 0;
+    totalScore = 0.0;
+    for (int i=0; i<moleSet.size(); i=i+2) {
+        assert(moleSet[i].id == -moleSet[i+1].id);
+        moleSet[i].mapRet_reset();
+        moleSet[i+1].mapRet_reset();
+        if (moleSet[i].dis.size()<MINCNT) continue;
+        whole_DP_score(moleSet[i],gene);
+        whole_DP_score(moleSet[i+1],gene);
+        if (moleSet[i].mapRet.label || moleSet[i+1].mapRet.label) {
+            if (moleSet[i].mapRet.label && moleSet[i+1].mapRet.label) {
+                totalScore += double(max(moleSet[i].mapRet.score,moleSet[i+1].mapRet.score));
+            } else if (moleSet[i].mapRet.label) {
+                totalScore += double(moleSet[i].mapRet.score);
             } else {
-                cerr << moleSet[i].id << " and " << moleSet[i+1].id << " can not map head to tail" << endl;
+                totalScore += double(moleSet[i+1].mapRet.score);
             }
+            right_count ++;
+        } else {
+            cerr << moleSet[i].id << " and " << moleSet[i+1].id << " can not map head to tail" << endl;
         }
-        cout<<"map number: "<<moleSet.size()<<" whole map number "<<right_count<<endl;
-        cout<<"total score: "<<totalScore<<endl;
-        string filename = outPrefix + "mu_" + to_string(mu) + "sigma_" + to_string(sigma); 
-        print_score(filename,moleSet); 
-       // if (change_parameter(moleSet)==false) {   
-       //     break;
-       // }
-        iter ++; 
-    //}
+    }
+    string filename = outPrefix + "mu_" + to_string(mu) + "sigma_" + to_string(sigma); 
+    print_score(filename,moleSet); 
     return 1;
 }
-
-
-/*bool Map::whole_map(vector<Mole>& moleSet,vector <int>& gene) {
-  cout<<"[Info] : begin whole map without score:"<<endl;
-  for (int i=0; i<moleSet.size(); i++) {
-  if (moleSet[i].dis.size()<=MINCNT) continue;
-  moleSet[i].mapRet_reset();
-  for (int j=0; j<gene.size()-moleSet[i].dis.size(); j++) {
-  whole_DP(moleSet[i],gene,j);
-  }
-  }
-  string filename = outPrefix + "all possible position"; 
-  print_score(filename,moleSet); 
-  return true; 
-  }
-
-  bool Map::whole_DP() {
-
-  return true;
-  }*/
-
-
 
 double Map::validScore(int a, int b) {
     if (a-b<mu+3*sigma && a-b>mu-3*sigma) { 
@@ -136,10 +106,6 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     int delta = moleLen - geneLen;
     if(moleE - moleB != 0) {
         //Insert
-        //cout << "DEBUG: insert:" <<endl;
-        //cout << moleE - moleB + 1 << endl;
-        //cout << pI(moleE - moleB + 1) << endl;
-
         return guss(delta) + pI(moleE - moleB + 1) - background(delta);
     }
     else if(geneE - geneB - miss != 0) {
@@ -156,13 +122,6 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     else {
         return guss(delta) - background(delta);
     }
-    /*拟合得到的背景分布
-        return log(1/sqrt(2*3.14)/sigma*exp(-(moleLen-geneLen-mu)*(moleLen-geneLen-mu)/2/sigma/sigma)*pow(beta,moleE-moleB)*pow(alpha,geneE-geneB)) 
-            - log(1/sqrt(2*3.14)/509771*exp(-(moleLen-geneLen-1466)*(moleLen-geneLen-1466)/2/509771/509771)); 
-    考虑delete
-    return log(1/sqrt(2*3.14)/sigma*exp(-(moleLen-geneLen-mu)*(moleLen-geneLen-mu)/2/sigma/sigma)*(1-alpha)*pow(alpha,geneE-geneB)) 
-        - log(1/sqrt(2*3.14)/10840*exp(-(moleLen-geneLen-1870)*(moleLen-geneLen-1870)/2/10840/10840)); 
-*/
 }
 double Map::guss(int delta) {
     return 0.0 - 0.5 * log(2*3.14) - log(sigma) - (delta-mu)*(delta-mu)/2/sigma/sigma;
@@ -248,7 +207,6 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
     }*/
     int pi = mole.mapRet.alignMolePosition.second, pj = mole.mapRet.alignGenePosition.second;
     cerr << "mole" << mole.get_id() << endl; 
- //   cerr << pi << "\t" << pj << endl;
     if (max == -DBL_MAX) {
         cerr << "case 1 map failure" <<endl; 
         return false;
@@ -259,13 +217,11 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
         int pjj = pj;
         pi = backTrack[pii][pjj].first;
         pj = backTrack[pii][pjj].second;
-   //     cerr << pi << "\t" << pj <<endl;
         if (pi == -1 && pj == -1) { 
             mole.mapRet.alignMolePosition.first = pii;
             mole.mapRet.alignGenePosition.first = pjj;
             break;
         }
-        //应该只用正反链中分高的，而且是全局联配上的链来更新参数
         LenNum moleLn,geneLn;
         assert(pi==pii-1 || pj==pjj-1);
         moleLn.num = pii-pi;
@@ -283,15 +239,6 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
     mole.mapRet.score = max;
     if (mole.mapRet.alignMolePosition.first == 0) {
         mole.mapRet.label = true; 
-        //  if (mole.mapRet.score < 0) {
-        /*cerr << mole.id << ": "; 
-          for (int i=0; i<mole.dis.size(); i++) {
-          cerr<<mole.dis[i]<<" ";
-          }
-          cerr << endl;
-          for (int i=0; i<mole.mapRet.alignLenNum.size(); i++)
-          cerr << mole.mapRet.alignLenNum[i].first.len <<" "<< mole.mapRet.alignLenNum[i].second.len << " " << mole.mapRet.alignLenNum[i].first.num <<" "<< mole.mapRet.alignLenNum[i].second.num << endl;*/
-        //  }
         return true;
     }
     cerr << "case 2 map failure" <<endl; 
