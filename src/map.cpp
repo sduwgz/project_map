@@ -9,73 +9,30 @@
 #include "map.h"
 #include "Types.h"
 #include "mole.h"
-bool Map::local_map_score(vector<Mole>& moleSet,vector <int>& gene) {
-    cout<<"[Info] : begin local map score:"<<endl;
-    int iter = 0;
-    double totalScore;
-    while (true) {
-        cout << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
-        cerr << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
 
-        int right_count = 0; 
-        totalScore = 0.0;
-        for (int i=0; i<moleSet.size(); i=i+2) {
-            assert(moleSet[i].id == -moleSet[i+1].id);
-            moleSet[i].mapRet_reset();
-            moleSet[i+1].mapRet_reset();
-            if (moleSet[i].dis.size()<MINCNT) continue;
-            local_DP_score(moleSet[i],gene);
-            local_DP_score(moleSet[i+1],gene);
-            if (moleSet[i].mapRet.label || moleSet[i+1].mapRet.label) {
-                if (moleSet[i].mapRet.label && moleSet[i+1].mapRet.label) {
-                    totalScore += double(max(moleSet[i].mapRet.score,moleSet[i+1].mapRet.score));
-                } else if (moleSet[i].mapRet.label) {
-                    totalScore += double(moleSet[i].mapRet.score);
-                } else {
-                    totalScore += double(moleSet[i+1].mapRet.score);
-                }
-                right_count ++;
-            } else {
-                cerr << moleSet[i].id << " and " << moleSet[i+1].id << " can not map head to tail" << endl;
-            }
-        }
-        cout<<"map number: "<<moleSet.size()<<" local map number "<<right_count<<endl;
-        cout<<"total score: "<<totalScore<<endl;
-        string filename = outPrefix + "mu_" + to_string(mu) + "sigma_" + to_string(sigma); 
-        print_score(filename,moleSet); 
-        if (change_parameter(moleSet)==false)
-            break;
-        iter ++; 
-    }
-    return true; 
-}
 bool Map::whole_map_score(vector<Mole>& moleSet,vector <int>& gene) {
-    cout<<"[Info] : begin whole map score:"<<endl;
-    int iter = 0;
-    double totalScore;
-    cout << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
-    cerr << iter << "th iteration " << "mu: " << mu << " sigma: " <<sigma <<" alpha: " << alpha << " beta: " << beta << endl; 
-
+    double totalScore = 0.0;
     int right_count = 0;
-    totalScore = 0.0;
-    for (int i=0; i<moleSet.size(); i=i+2) {
-        assert(moleSet[i].id == -moleSet[i+1].id);
+    for (int i = 0; i < moleSet.size(); i = i + 2) {
         moleSet[i].mapRet_reset();
-        moleSet[i+1].mapRet_reset();
-        if (moleSet[i].dis.size()<MINCNT) continue;
+        moleSet[i + 1].mapRet_reset();
+        //MINCNT is a threshold of the min site in mole
+        if (moleSet[i].dis.size() < MINCNT) continue;
+        //dp
         whole_DP_score(moleSet[i],gene);
-        whole_DP_score(moleSet[i+1],gene);
-        if (moleSet[i].mapRet.label || moleSet[i+1].mapRet.label) {
-            if (moleSet[i].mapRet.label && moleSet[i+1].mapRet.label) {
+        whole_DP_score(moleSet[i + 1],gene);
+        //between the reversed mole and the mole, choose the better one
+        if (moleSet[i].mapRet.label || moleSet[i + 1].mapRet.label) {
+            if (moleSet[i].mapRet.label && moleSet[i + 1].mapRet.label) {
                 totalScore += double(max(moleSet[i].mapRet.score,moleSet[i+1].mapRet.score));
             } else if (moleSet[i].mapRet.label) {
                 totalScore += double(moleSet[i].mapRet.score);
             } else {
-                totalScore += double(moleSet[i+1].mapRet.score);
+                totalScore += double(moleSet[i + 1].mapRet.score);
             }
-            right_count ++;
+            ++ right_count;
         } else {
-            cerr << moleSet[i].id << " and " << moleSet[i+1].id << " can not map head to tail" << endl;
+            cerr << moleSet[i].id << " and " << moleSet[i + 1].id << " can not map head to tail" << endl;
         }
     }
     string filename = outPrefix + "mu_" + to_string(mu) + "sigma_" + to_string(sigma); 
@@ -83,27 +40,50 @@ bool Map::whole_map_score(vector<Mole>& moleSet,vector <int>& gene) {
     return 1;
 }
 
-double Map::validScore(int a, int b) {
-    if (a-b<mu+3*sigma && a-b>mu-3*sigma) { 
-        return 100000*1/sqrt(2*3.14)/sigma*exp(-(a-b-mu)*(a-b-mu)/2/sigma/sigma); 
-    } else {
-        return -DBL_MAX;
-    }
-}
-
 double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<int> & mole, const vector<int> & gene) {
-    assert(moleB<=moleE && geneB<=geneE && moleE<mole.size() && geneB<gene.size());
+    //B for begin and E for end, moleB and moleE should less than mole.size()
+    assert(moleB <= moleE && geneB <= geneE && moleE < mole.size() && geneB < gene.size());
+    
     int moleLen = 0, geneLen = 0, miss = 0;
-    for(int i=moleB; i<=moleE; i++) {
+    //get the length of mole
+    for(int i = moleB; i <= moleE; ++ i) {
         moleLen += mole[i];
     }
-    for(int j=geneB; j<=geneE; j++) {
+    //get the length of gene
+    for(int j = geneB; j <= geneE; ++ j) {
         if(gene[j] < 1500){
             ++ miss;
         }
         geneLen += gene[j];
     }
+    /*
+         ***********************************
+         *                                 *
+         *                   delta         *
+         *                   |   |         *
+         *  MOLE:  ---*----------*---      *
+         *  GENE:  ---*------*-------      *
+         *                                 *
+         ***********************************
+     */
+    
     int delta = moleLen - geneLen;
+    
+    /*
+         ****************************************************
+         *                                                  *
+         *         INSERT:                                  *
+         *             MOLE:  ---*----*--*---               *
+         *             GENE:  ---*-------*---               *
+         *         DELETE:                                  *
+         *             MOLE:  ---*-------*---               *
+         *             GENE:  ---*----*--*---               *
+         *         MATCH:                                   *
+         *             MOLE:  ---*-------*---               *
+         *             GENE:  ---*-------*---               *
+         *                                                  *
+         ****************************************************
+     */
     if(moleE - moleB != 0) {
         //Insert
         return guss(delta) + pI(moleE - moleB + 1) - background(delta);
@@ -120,11 +100,13 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
         return guss(delta) +  pD(del) - background(delta);
     }
     else {
+        //Match
         return guss(delta) - background(delta);
     }
 }
+
 double Map::guss(int delta) {
-    return 0.0 - 0.5 * log(2*3.14) - log(sigma) - (delta-mu)*(delta-mu)/2/sigma/sigma;
+    return 0.0 - 0.5 * log(2 * 3.14) - log(sigma) - (delta - mu) * (delta - mu) / (2 * sigma * sigma);
 }
 
 double Map::pD(int k) {
@@ -142,187 +124,109 @@ double Map::pI(int k) {
 }
 
 double Map::background(int delta){
-    //background distribution from fit
-    return log(1/sqrt(2*3.14)/10840*exp(-(delta-1870)*(delta-1870)/2/10840/10840));
+    //background distribution from fit, mean = 1870, var = 10840^2
+    return 0.0 - 0.5 * log(2 * 3.14) -log(10840) - (delta - 1870) * (delta - 1870) / (2 * 10840 * 10840);
 }
-bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
 
-    double dp[200][700];
-    pair<int,int> backTrack[200][700];
-    assert(mole.dis.size()<=200 && gene.size()<=700); 
-    assert(mole.mapRet.label == false && mole.mapRet.score == -DBL_MAX);
+bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
+    int rows = mole.dis.size() + 1, cols = gene.size() + 1;
+    double dp[rows][cols];
+    pair<int,int> backTrack[rows][cols];
     vector<int> tempDis;
     vector<pair<int,int> > tempNum;
-    for(int i=0; i<=mole.dis.size(); i++) {
-        for(int j=0; j<=gene.size(); j++) {
-            dp[i][j] = -DBL_MAX ;
+    for(int i = 0; i <= mole.dis.size(); ++ i) {
+        for(int j=0; j <= gene.size(); ++ j) {
+            dp[i][j] = -1000000.0;
             backTrack[i][j].first = -1;
             backTrack[i][j].second = -1;
         }
     }
-    for (int j=0; j<=gene.size(); j++) {
+    for (int j = 0; j <= gene.size(); ++ j) {
         dp[0][j] = 0.0;
     }
-    for(int i=1; i<=mole.dis.size(); i++) {
-        for(int j=1; j<=gene.size(); j++) {
-            for(int tj=(j-5>0)?j-5:0; tj<=j-1; tj++) {
-                double temp = dp[i-1][tj] + validScore(i-1,i-1,tj,j-1,mole.dis,gene);
+    for(int i = 1; i <= mole.dis.size(); ++ i) {
+        for(int j = 1; j <= gene.size(); ++ j) {
+            for(int tj = (j - 5 > 0) ? j - 5 : 0; tj <= j - 1; ++ tj) {
+                double temp = dp[i - 1][tj] + validScore(i - 1, i - 1, tj, j - 1, mole.dis, gene);
                 if (temp > dp[i][j]) {
                     dp[i][j] = temp;
-                    backTrack[i][j].first = i-1;
+                    backTrack[i][j].first = i - 1;
                     backTrack[i][j].second = tj;
                 }
             }
-            for(int ti=(i-5>0)?i-5:0; ti<=i-1; ti++) {
-                double temp = dp[ti][j-1] + validScore(ti,i-1,j-1,j-1,mole.dis,gene);
+            for(int ti = ( i-5 > 0) ? i - 5 : 0; ti <= i - 1; ++ ti) {
+                double temp = dp[ti][j - 1] + validScore(ti, i - 1, j - 1, j - 1, mole.dis, gene);
                 if (temp > dp[i][j]) {
                     dp[i][j] = temp;
                     backTrack[i][j].first = ti;
-                    backTrack[i][j].second = j-1;
+                    backTrack[i][j].second = j - 1;
                 }
             }
         }
     }
 
-    double max = -DBL_MAX;
+    double max = -1000000.0;
 
-    for(int j=0; j<=gene.size(); j++) {
+    for(int j = 0; j <= gene.size(); ++j) {
         if (dp[mole.dis.size()][j] > max) {
         max = dp[mole.dis.size()][j];
         mole.mapRet.alignMolePosition.second = mole.dis.size();
         mole.mapRet.alignGenePosition.second = j;
         }
     }
-/*
-    for (int i=0; i<=mole.dis.size(); i++) {
-        for(int j=0; j<=gene.size(); j++) {
-            cout << dp[i][j] << " " ;
-            if (dp[i][j] > max) {
-                max = dp[i][j];
-                mole.mapRet.alignMolePosition.second = i;
-                mole.mapRet.alignGenePosition.second = j;
-            }
-        }
-        cout << endl;
-    }*/
+
     int pi = mole.mapRet.alignMolePosition.second, pj = mole.mapRet.alignGenePosition.second;
-    cerr << "mole" << mole.get_id() << endl; 
-    if (max == -DBL_MAX) {
+    if (max == -1000000.0) {
         cerr << "case 1 map failure" <<endl; 
         return false;
     }
-
+    
+    //trace back, and find the path
     while(true) {
-        int pii = pi;
-        int pjj = pj;
-        pi = backTrack[pii][pjj].first;
-        pj = backTrack[pii][pjj].second;
-        if (pi == -1 && pj == -1) { 
+        
+        int pii = pi, pjj = pj;
+        pi = backTrack[pii][pjj].first, pj = backTrack[pii][pjj].second;
+        
+        if (pi == -1 && pj == -1) {
+            //have gotten the head
             mole.mapRet.alignMolePosition.first = pii;
             mole.mapRet.alignGenePosition.first = pjj;
             break;
         }
-        LenNum moleLn,geneLn;
-        assert(pi==pii-1 || pj==pjj-1);
-        moleLn.num = pii-pi;
-        geneLn.num = pjj-pj;
-        moleLn.len = accumulate(mole.dis.begin()+pi,mole.dis.begin()+pii,0);
-        geneLn.len = accumulate(gene.begin()+pj,gene.begin()+pjj,0);
-        cerr << pi << "\t" << pii-1 << "\t" << pj << "\t" <<pjj-1 << "\t" << moleLn.len <<"\t" << geneLn.len << endl; 
-        mole.mapRet.alignLenNum.push_back(make_pair(moleLn,geneLn));
-        mole.mapRet.moleMapPosition.push_back(make_pair(pi,pii-1));
-        mole.mapRet.geneMapPosition.push_back(make_pair(pj,pjj-1));
+
+        //moleLn and genLn are the structs of storing the result
+        LenNum moleLn, geneLn;
+
+        assert(pi == pii - 1 || pj == pjj - 1);
+
+        moleLn.num = pii - pi;
+        geneLn.num = pjj - pj;
+
+        moleLn.len = accumulate(mole.dis.begin() + pi, mole.dis.begin() + pii, 0);
+        geneLn.len = accumulate(gene.begin() + pj, gene.begin() + pjj, 0);
+
+        mole.mapRet.alignLenNum.push_back(make_pair(moleLn, geneLn));
+
+        mole.mapRet.moleMapPosition.push_back(make_pair(pi, pii - 1));
+        mole.mapRet.geneMapPosition.push_back(make_pair(pj, pjj - 1));
     }
-    reverse(mole.mapRet.moleMapPosition.begin(),mole.mapRet.moleMapPosition.end());
-    reverse(mole.mapRet.geneMapPosition.begin(),mole.mapRet.geneMapPosition.end());
+
+    //reversed result is more human-facing
+    reverse(mole.mapRet.moleMapPosition.begin(), mole.mapRet.moleMapPosition.end());
+    reverse(mole.mapRet.geneMapPosition.begin(), mole.mapRet.geneMapPosition.end());
+
     cout << mole.id << "\t" << max << "\t" << mole.mapRet.alignGenePosition.first+1 << "\t" <<  mole.mapRet.alignGenePosition.second+1 << "\t" << mole.mapRet.alignMolePosition.first << "\t" <<  mole.mapRet.alignMolePosition.second << endl; 
+    
+    //max the highest score in the last row
     mole.mapRet.score = max;
+    
     if (mole.mapRet.alignMolePosition.first == 0) {
         mole.mapRet.label = true; 
         return true;
     }
+
     cerr << "case 2 map failure" <<endl; 
     return false;
-}
-
-bool Map::local_DP_score(Mole& mole, vector<int>& gene) {
-    double dp[200][700];
-    pair<int,int> backTrack[200][700];
-    assert(mole.dis.size()<=200 && gene.size()<=700); 
-    assert(mole.mapRet.label == false && mole.mapRet.score == -DBL_MAX);
-    vector<int> tempDis;
-    vector<pair<int,int> > tempNum;
-    for(int i=0; i<=mole.dis.size(); i++) {
-        for(int j=0; j<=gene.size(); j++) {
-            dp[i][j] = 0;
-            backTrack[i][j].first = -1;
-            backTrack[i][j].second = -1;
-        }
-    }
-    for(int i=1; i<=mole.dis.size(); i++) {
-        for(int j=1; j<=gene.size(); j++) {
-            for(int tj=(j-5>0)?j-5:0; tj<=j-1; tj++) {
-                double temp = dp[i-1][tj] + validScore(i-1,i-1,tj,j-1,mole.dis,gene);
-                if (temp > dp[i][j]) {
-                    dp[i][j] = temp;
-                    backTrack[i][j].first = i-1;
-                    backTrack[i][j].second = tj;
-                }
-            }
-            for(int ti=(i-5>0)?i-5:0; ti<=i-1; ti++) {
-                double temp = dp[ti][j-1] + validScore(ti,i-1,j-1,j-1,mole.dis,gene);
-                if (temp > dp[i][j]) {
-                    dp[i][j] = temp;
-                    backTrack[i][j].first = ti;
-                    backTrack[i][j].second = j-1;
-                }
-            }
-        }
-    }
-
-    double max = 0;
-
-    for (int i=0; i<=mole.dis.size(); i++) {
-        for(int j=0; j<=gene.size(); j++) {
-            if (dp[i][j] > max) {
-                max = dp[i][j];
-                mole.mapRet.alignMolePosition.second = i;
-                mole.mapRet.alignGenePosition.second = j;
-            }
-        }
-    }
-    int pi = mole.mapRet.alignMolePosition.second, pj = mole.mapRet.alignGenePosition.second;
-    if (max == 0) {
-        cerr << "case 1 map failure" <<endl; 
-        return false;
-    }
-
-    while(true) {
-        int pii = pi;
-        int pjj = pj;
-        pi = backTrack[pii][pjj].first;
-        pj = backTrack[pii][pjj].second;
-        if (pi == -1 && pj == -1) { 
-            mole.mapRet.alignMolePosition.first = pii;
-            mole.mapRet.alignGenePosition.first = pjj;
-            break;
-        }
-        //应该只用正反链中分高的，而且是全局联配上的链来更新参数
-        LenNum moleLn,geneLn;
-        assert(pi==pii-1 || pj==pjj-1);
-        moleLn.num = pii-pi;
-        geneLn.num = pjj-pj;
-        moleLn.len = accumulate(mole.dis.begin()+pi,mole.dis.begin()+pii,0);
-        geneLn.len = accumulate(gene.begin()+pj,gene.begin()+pjj,0);
-        mole.mapRet.alignLenNum.push_back(make_pair(moleLn,geneLn));
-    }
-
-    cout << mole.id << "\t" << max << "\t" << mole.mapRet.alignGenePosition.first+1 << "\t" <<  mole.mapRet.alignGenePosition.second+1 << "\t" << mole.mapRet.alignMolePosition.first << "\t" <<  mole.mapRet.alignMolePosition.second << endl; 
-    mole.mapRet.score = max;
-    mole.mapRet.label = true; 
-
-    return true;
-
 }
 
 void Map::remove_noise(vector<Mole>& moleSet,vector<int>& gene) {
