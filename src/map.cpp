@@ -1,10 +1,8 @@
-// Last Update:2015-11-19 22:16:48
 /**
  * @file map.cpp
- * @brief 
  * @author Yanbo Li, liyanbo@ict.ac.cn
- * @version 0.1.00
- * @date 2015-10-21
+ * @author Guozheng Wei, weiguozheng@ict.ac.cn
+ * @date 2015-12-30
  */
 #include "map.h"
 #include "Types.h"
@@ -51,7 +49,7 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     }
     //get the length of gene
     for(int j = geneB; j <= geneE; ++ j) {
-        if(gene[j] < 1500){
+        if(gene[j] < 1000){
             ++ miss;
         }
         geneLen += gene[j];
@@ -90,14 +88,8 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     }
     else if(geneE - geneB - miss != 0) {
         //Delete
-        int del = (int)((geneE - geneB - miss + 0.0) / moleLen * 10000 + 0.5);
-        if(del < 1) {
-            del = 1;
-        }
-        if(del > 20) {
-            del = 20;
-        }
-        return guss(delta) +  pD(del) - background(delta);
+        int siteNumber = geneE - geneB - miss;
+        return guss(delta) +  pD(siteNumber, moleLen) - background(delta);
     }
     else {
         //Match
@@ -109,13 +101,24 @@ double Map::guss(int delta) {
     return 0.0 - 0.5 * log(2 * 3.14) - log(sigma) - (delta - mu) * (delta - mu) / (2 * sigma * sigma);
 }
 
-double Map::pD(int k) {
+double Map::pD(int siteNumber, int moleLen) {
+    
+    int del = (int)((siteNumber + 0.0) / moleLen * 10000 + 0.5);
+    if(del < 1) {
+        del = 1;
+    }
+    if(del > 20) {
+        del = 20;
+    }
+    
     double lambd = 1.82;
     long long fact = 1;
-    for(int i = 1; i <= k; ++i) {
+    
+    for(int i = 1; i <= del; ++i) {
         fact *= i;
     }
-    return k * log(lambd) - lambd - log(fact);
+
+    return del * log(lambd) - lambd - log(fact);
 }
 
 double Map::pI(int k) {
@@ -141,8 +144,11 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
             backTrack[i][j].second = -1;
         }
     }
+    //the first row is inited to zero, and the first and second rows are inited to pI(1) and pI(2)
     for (int j = 0; j <= gene.size(); ++ j) {
         dp[0][j] = 0.0;
+        dp[1][j] = pI(1);
+        dp[2][j] = pI(2);
     }
     for(int i = 1; i <= mole.dis.size(); ++ i) {
         for(int j = 1; j <= gene.size(); ++ j) {
@@ -154,7 +160,7 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
                     backTrack[i][j].second = tj;
                 }
             }
-            for(int ti = ( i-5 > 0) ? i - 5 : 0; ti <= i - 1; ++ ti) {
+            for(int ti = ( i - 5 > 0) ? i - 5 : 0; ti <= i - 1; ++ ti) {
                 double temp = dp[ti][j - 1] + validScore(ti, i - 1, j - 1, j - 1, mole.dis, gene);
                 if (temp > dp[i][j]) {
                     dp[i][j] = temp;
@@ -162,19 +168,52 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
                     backTrack[i][j].second = j - 1;
                 }
             }
+            /*
+            for(int ki = (i - 3 > 0) ? i - 3 : 0; ki < i; ++ ki) {
+                double temp = dp[ki][j] + pI(j - ki);
+                if (temp > dp[i][j]) {
+                    dp[i][j] = temp;
+                    backTrack[i][j].first = ti;
+                    backTrack[i][j].second = j;
+                }
+            }
+            for(int kj = (j - 3 > 0) ? j - 3 : 0; kj < j; ++ kj) {
+                double temp = dp[i][kj] + pD(j - ki);
+                if (temp > dp[i][j]) {
+                    dp[i][j] = temp;
+                    backTrack[i][j].first = i;
+                    backTrack[i][j].second = tj;
+                }
+            }
+            */
         }
     }
 
     double max = -1000000.0;
 
     for(int j = 0; j <= gene.size(); ++j) {
+        //we should find the max score in the last row
         if (dp[mole.dis.size()][j] > max) {
-        max = dp[mole.dis.size()][j];
-        mole.mapRet.alignMolePosition.second = mole.dis.size();
-        mole.mapRet.alignGenePosition.second = j;
+            max = dp[mole.dis.size()][j];
+            mole.mapRet.alignMolePosition.second = mole.dis.size();
+            mole.mapRet.alignGenePosition.second = j;
+        }
+        //if the last one is a insertion, we must find the max score in last but one row, and give a punish
+        double insertPunish1 = pI(1);
+        if (dp[mole.dis.size() - 1][j] + insertPunish1 > max) {
+            max = dp[mole.dis.size() - 1][j] + insertPunish1;
+            mole.mapRet.alignMolePosition.second = mole.dis.size() - 1;
+            mole.mapRet.alignGenePosition.second = j;
+        }
+        //if the last two is insertions
+        double insertPunish2 = pI(2);
+        if (dp[mole.dis.size() - 2][j] + insertPunish2 > max) {
+            max = dp[mole.dis.size() - 2][j] + insertPunish2;
+            mole.mapRet.alignMolePosition.second = mole.dis.size() - 2;
+            mole.mapRet.alignGenePosition.second = j;
         }
     }
-
+    
     int pi = mole.mapRet.alignMolePosition.second, pj = mole.mapRet.alignGenePosition.second;
     if (max == -1000000.0) {
         cerr << "case 1 map failure" <<endl; 

@@ -67,7 +67,6 @@ int main(int argc, char ** argv)
         cout << "[REPORT]" << "The gene is bad." << endl;
         exit(EXIT_FAILURE);
     }
-    //g.print();
     cout<< "[INFO]" << "Read mole. File name: " << moleFileName << endl;
 
     Mole m;
@@ -75,7 +74,6 @@ int main(int argc, char ** argv)
     ifstream moleIn(moleFileName.c_str());
     MoleReader mReader(moleIn);
     while (mReader.read(m)) {
-      //  m.print();
         moleSet.push_back(m);
         Mole revM = m.reverseMole();
         moleSet.push_back(revM);
@@ -87,19 +85,12 @@ int main(int argc, char ** argv)
     }
     cout << "[REPORT]" << mole_number << " moles have been inited." << endl;
 
-    //得到背景分布
-
     double mean=46.0, variance=570;
     double beta = 0.15;
     double alpha = 0.15;
  
-    cout << mean << endl;
     Map maptool(mean, variance, alpha, beta, MINCNT,outPrefix);
-    //maptool.remove_noise(moleSet, g.dis);
     maptool.whole_map_score(moleSet, g.dis);
-    /*for(verctor<Mole>::iterater it = moleSet.begin(); it != moleSet.end(); ++it){
-    
-    }*/
     return 1;
 }
 
