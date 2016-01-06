@@ -33,7 +33,7 @@ bool Map::whole_map_score(vector<Mole>& moleSet,vector <int>& gene) {
             cerr << moleSet[i].id << " and " << moleSet[i + 1].id << " can not map head to tail" << endl;
         }
     }
-    string filename = outPrefix + "mu_" + to_string(mu) + "sigma_" + to_string(sigma); 
+    string filename = outPrefix; 
     print_score(filename,moleSet); 
     return 1;
 }
@@ -259,7 +259,7 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
     //max the highest score in the last row
     mole.mapRet.score = max;
     
-    if (mole.mapRet.alignMolePosition.first == 0) {
+    if (mole.mapRet.alignMolePosition.first < 3) {
         mole.mapRet.label = true; 
         return true;
     }
@@ -336,64 +336,58 @@ bool Map::change_parameter(vector<Mole> & moleSet) {
     }
     new_mu = sum/mapDis.size();
     sum = 0;
-        for (int i=0; i<mapDis.size(); i++) {
-            sum += (mapDis[i]-new_mu)*(mapDis[i]-new_mu); 
-        }
-        new_sigma = sqrt(sum/(mapDis.size()-1));
-        int second =0,first=0;
-        int firstTotal=0,secondTotal=0;
-        for (int i=0; i<mapNum.size(); i++) {
-            firstTotal += mapNum[i].first;
-            secondTotal += mapNum[i].second;
-            if (mapNum[i].first != 1) {
-                assert(mapNum[i].second == 1);
-                first += mapNum[i].first -1;      
-            }
-            if (mapNum[i].second != 1) {
-                assert(mapNum[i].first == 1);
-                second += mapNum[i].second -1;      
-            }
-        }
-        new_alpha = double(second)/secondTotal;
-        new_beta = double(first)/firstTotal;
-        assert(new_alpha<1.0 && new_beta<1.0);
-
-        cout<<"mu: "<< new_mu <<" sigma: "<<new_sigma<<" alpha: "<< new_alpha<<" beta: "<<new_beta<<endl;
-        if (new_sigma == 0 ) {
-            cout<<"new_sigma ==0"<<endl; 
-            return false;
-        }
-
-        if (fabs(new_mu-mu)<1&&fabs(new_sigma-sigma)<1&&fabs(alpha-new_alpha)<0.1&&fabs(beta-new_beta)<0.1) {
-            return false;
-        }
-
-        mu = new_mu;
-        sigma = new_sigma;
-        alpha = new_alpha;
-        beta = new_beta;
-        return true;;
+    for (int i=0; i<mapDis.size(); i++) {
+        sum += (mapDis[i]-new_mu)*(mapDis[i]-new_mu); 
     }
+    new_sigma = sqrt(sum/(mapDis.size()-1));
+    int second =0,first=0;
+    int firstTotal=0,secondTotal=0;
+    for (int i=0; i<mapNum.size(); i++) {
+        firstTotal += mapNum[i].first;
+        secondTotal += mapNum[i].second;
+        if (mapNum[i].first != 1) {
+            assert(mapNum[i].second == 1);
+            first += mapNum[i].first -1;      
+        }
+        if (mapNum[i].second != 1) {
+            assert(mapNum[i].first == 1);
+            second += mapNum[i].second -1;      
+        }
+    }
+    new_alpha = double(second)/secondTotal;
+    new_beta = double(first)/firstTotal;
+    assert(new_alpha<1.0 && new_beta<1.0);
+
+    cout<<"mu: "<< new_mu <<" sigma: "<<new_sigma<<" alpha: "<< new_alpha<<" beta: "<<new_beta<<endl;
+    if (new_sigma == 0 ) {
+        cout<<"new_sigma ==0"<<endl; 
+        return false;
+    }
+
+    if (fabs(new_mu-mu)<1&&fabs(new_sigma-sigma)<1&&fabs(alpha-new_alpha)<0.1&&fabs(beta-new_beta)<0.1) {
+        return false;
+    }
+
+    mu = new_mu;
+    sigma = new_sigma;
+    alpha = new_alpha;
+    beta = new_beta;
+    return true;;
+}
 
 void Map::print_score(const string filename, const vector< Mole >& moleSet) {
-        ofstream out;
-        out.open(filename.c_str());
+    ofstream out;
+    out.open(filename.c_str());
 
-        for (int i=0; i<moleSet.size(); i++) {
-            // if (moleSet[i].mapRet.label == true) {
-            out << moleSet[i].get_id() <<"\t" << moleSet[i].mapRet.label <<"\t" << moleSet[i].mapRet.score << "\t" 
-                <<  moleSet[i].mapRet.alignMolePosition.first << "\t" << moleSet[i].mapRet.alignMolePosition.second << "\t"  <<  moleSet[i].mapRet.alignGenePosition.first << "\t" << moleSet[i].mapRet.alignGenePosition.second <<endl;
-            for (int j=0; j<moleSet[i].mapRet.moleMapPosition.size(); j++) {
-                out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t";  
-            }
-            out<<endl;
-
-            //  }
-        
+    for (int i=0; i<moleSet.size(); i++) {
+        out << moleSet[i].get_id() <<"\t" << moleSet[i].mapRet.label <<"\t" << moleSet[i].mapRet.score << "\t" 
+            <<  moleSet[i].mapRet.alignMolePosition.first << "\t" << moleSet[i].mapRet.alignMolePosition.second << "\t"  <<  moleSet[i].mapRet.alignGenePosition.first << "\t" << moleSet[i].mapRet.alignGenePosition.second <<endl;
+        for (int j=0; j<moleSet[i].mapRet.moleMapPosition.size(); j++) {
+            out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\n";  
         }
     }
+}
 
 void Map::get_background_distribution() {
-
-    }
+}
 

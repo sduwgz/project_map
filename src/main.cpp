@@ -57,17 +57,17 @@ int main(int argc, char ** argv)
         opt = getopt(argc, argv, optStr);
     }
     
-    cout<< "[INFO]" << "Read whole gene. File name: " << geneFileName << endl;
+    //cout<< "[INFO]" << "Read whole gene. File name: " << geneFileName << endl;
     Gene g;
     ifstream geneIn(geneFileName.c_str());
     GeneReader gReader(geneIn);
-    if(gReader.read(g))
-        cout << "[REPORT]" << "The gene has been inited." << endl;
-    else{ 
+    if(!gReader.read(g)) {
+        //cout << "[REPORT]" << "The gene has been inited." << endl;
+    //else{ 
         cout << "[REPORT]" << "The gene is bad." << endl;
         exit(EXIT_FAILURE);
     }
-    cout<< "[INFO]" << "Read mole. File name: " << moleFileName << endl;
+    //cout<< "[INFO]" << "Read mole. File name: " << moleFileName << endl;
 
     Mole m;
     vector<Mole> moleSet;
@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
         cout << "[REPORT]" << "No mole is in moleSet." << endl; 
         exit(EXIT_FAILURE);
     }
-    cout << "[REPORT]" << mole_number << " moles have been inited." << endl;
+    //cout << "[REPORT]" << mole_number << " moles have been inited." << endl;
 
     double mean=46.0, variance=570;
     double beta = 0.15;
