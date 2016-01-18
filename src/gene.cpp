@@ -18,9 +18,9 @@
 using namespace std;
 bool Gene::getDis() {
     assert(pos.size()>0);
-    dis.resize(pos.size()-2); 
+    dis.resize(pos.size()-1); 
     int j = 0;
-    for (int i = 0; i + 2 < pos.size(); ++i) {
+    for (int i = 0; i < pos.size() - 1; ++i) {
         int disOne = pos[i+1] - pos[i]; 
         if (disOne != 0) 
             dis[j++] = disOne;    

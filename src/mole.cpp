@@ -61,11 +61,6 @@ void Mole::print() {
          cout<<dis[i]<<"\t";
      cout<<endl;
 }
-/*
-   bool Mole::filter() {
-
-   }*/
-
 
 bool MoleReader::read(Mole& mole) {
     enum {
@@ -91,8 +86,8 @@ bool MoleReader::read(Mole& mole) {
             } else if (state = ePos) {
                 tmp = SplitString(line).split2Dbl("\t ,");
                 if (static_cast<int>(tmp[0])==1) {
-                    mole.pos.resize(tmp.size()-2,0);    
-                    for (int i = 1; i < tmp.size()-1; i++) { 
+                    mole.pos.resize(tmp.size()-1,0);    
+                    for (int i = 1; i < tmp.size(); i++) { 
                          mole.pos[i-1] = static_cast<long>(tmp[i]); 
                     }
                     if (mole.pos.size() > 0) {
