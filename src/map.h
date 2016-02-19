@@ -9,12 +9,18 @@
 
 #ifndef MAP_H
 #define MAP_H
+#include <boost/math/distributions/poisson.hpp>
+#include <boost/math/distributions/normal.hpp>
+#include <boost/math/distributions/laplace.hpp>
+#include <boost/math/distributions/exponential.hpp>
+#include <math.h>
 #include <vector>
 #include <string>
 class Mole;
 //#include "mole.h" 
 
 using namespace std;
+using namespace boost::math;
 class Map {
 private:
     double mu;
@@ -36,7 +42,9 @@ public:
      double validScore(int a, int b);
      double validScore(int moleB, int moleE, int geneB, int geneE, const vector<int> & mole, const vector<int> & gene); 
      double guss(int delta);
-     double pD(int k);
+     double laplace(int delta);
+     double laplace1(int delta);
+     double pD(int siteNumber, int moleLen);
      double pI(int k);
      double background(int delta);
      void remove_noise(vector<Mole>& moleSet,vector<int>& gene); 
