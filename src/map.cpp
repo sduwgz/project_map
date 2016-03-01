@@ -91,16 +91,16 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
      */
     if(moleE - moleB != 0) {
         //Insert
-        return laplace1(delta) + pI(moleE - moleB + 1) - background(delta);
+        return laplace1(delta) + pI(moleE - moleB) + pD(0, moleLen) - background(delta);
     }
     else if(geneE - geneB != 0) {
         //Delete
         int siteNumber = geneE - geneB;
-        return laplace1(delta) +  pD(siteNumber, moleLen) - background(delta);
+        return laplace1(delta) + pD(siteNumber, moleLen) + pI(0) - background(delta);
     }
     else {
         //Match
-        return laplace1(delta) - background(delta);
+        return laplace1(delta) + pI(0) + pD(0, moleLen) - background(delta);
     }
 }
 
@@ -124,6 +124,13 @@ double Map::laplace(int delta) {
     }
 }
 */
+
+double probDelete(int k) {
+    double lambd = 0.225;
+    boost::math::poisson_distribution<> p(lambd);
+    return log(boost::math::pdf(p, k));
+}
+
 double Map::pD(int siteNumber, int moleLen) {
     
     int del = (int)((siteNumber + 0.0) / moleLen * 10000 + 0.5);
@@ -133,27 +140,28 @@ double Map::pD(int siteNumber, int moleLen) {
     if(del > 20) {
         del = 20;
     }
-    
-    double lambd = 1.82;
-    long long fact = 1;
-    
-    for(int i = 1; i <= del; ++i) {
-        fact *= i;
-    }
+    return probDelete(del);
 
-    return del * log(lambd) - lambd - log(fact) - 2;
+    //double lambd = 1.82;
+    //long long fact = 1;
+    
+    //for(int i = 1; i <= del; ++i) {
+    //    fact *= i;
+    //}
+
+    //return del * log(lambd) - lambd - log(fact) - 2;
 }
 
+/*
 double Map::pI(int k) {
     double lambd = 1.064;
     return log(lambd) + ((0 - k) * lambd);
 }
-
 double Map::background(int delta){
     //background distribution from fit, mean = 1870, var = 10840^2
     return 0.0 - 0.5 * log(2 * 3.14) -log(10840) - (delta - 1870) * (delta - 1870) / (2 * 10840 * 10840);
 }
-/*
+
 double Map::guss(int delta) {
     
     double mu = 46.0;
@@ -181,10 +189,15 @@ double pD(int k) {
     return log(boost::math::pdf(p, k));
 }
 
+*/
 double Map::pI(int k) {
-    double lambd = 1.064;
+    double lambd = 5;
     boost::math::exponential_distribution<> e(lambd);
-    return log(cdf(e, k + 1) - cdf(e, k));
+    if(k == 0){
+        return log(cdf(e, 0.5) - cdf(e, 0));
+    }
+        
+    return log(cdf(e, k + 0.5) - cdf(e, k - 0.5));
 }
 double Map::background(int delta){
     //background distribution from fit, mean = 1870, var = 10840^2
@@ -204,7 +217,6 @@ double Map::background(int delta){
         return log(boost::math::cdf(n, interval_right) - boost::math::cdf(n, interval_left));
     }
 }
-*/
 double Map::laplace1(int delta) {
     double mu = 46.0;
     double sigma = 403.0;

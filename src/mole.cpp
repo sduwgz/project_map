@@ -38,11 +38,11 @@ Mole Mole::reverseMole() {
 
 
 bool Mole::getDis() {
-    assert(pos.size()>0);
-    dis.resize(pos.size()-1); 
-    int j =0;
-    for (int i=0; i+1 < pos.size(); ++i) {
-        int disOne = pos[i+1]-pos[i]; 
+    assert(pos.size() > 0);
+    dis.resize(pos.size() - 2); 
+    int j = 0;
+    for (int i = 0; i < pos.size() - 2; ++i) {
+        int disOne = pos[i + 1] - pos[i]; 
         if (disOne != 0) 
             dis[j++] = disOne;    
     }
