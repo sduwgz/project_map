@@ -4,11 +4,14 @@
  * @author Guozheng Wei, weiguozheng@ict.ac.cn
  * @date 2015-12-30
  */
+
 #include <boost/math/distributions/poisson.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/laplace.hpp>
 #include <boost/math/distributions/exponential.hpp>
+
 #include <math.h>
+
 #include "map.h"
 #include "Types.h"
 #include "mole.h"
@@ -89,6 +92,10 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
          *                                                  *
          ****************************************************
      */
+    if(moleE - moleB != 0 && geneE - geneB != 0){
+        int siteNumber = geneE - geneB;
+        return laplace1(delta) + pD(siteNumber, moleLen) + pI(moleE - moleB) - background(delta);
+    }
     if(moleE - moleB != 0) {
         //Insert
         return laplace1(delta) + pI(moleE - moleB) + pD(0, moleLen) - background(delta);
@@ -277,6 +284,15 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
                     backTrack[i][j].second = j - 1;
                 }
             }
+            if(i > 2 && j > 2){
+                double temp = dp[i - 2][j - 2] + validScore(i - 2, i - 1, j - 2, j - 1, mole.dis, gene);
+                if (temp > dp[i][j]) {
+                    dp[i][j] = temp;
+                    backTrack[i][j].first = i - 2;
+                    backTrack[i][j].second = j - 2;
+                }
+            } 
+
             /*
             for(int ki = (i - 3 > 0) ? i - 3 : 0; ki < i; ++ ki) {
                 double temp = dp[ki][j] + pI(j - ki);
@@ -345,7 +361,7 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
         //moleLn and genLn are the structs of storing the result
         LenNum moleLn, geneLn;
 
-        assert(pi == pii - 1 || pj == pjj - 1);
+        assert(pi == pii - 1 || pj == pjj - 1 || pi == pii - 2 || pj == pjj - 2);
 
         moleLn.num = pii - pi;
         geneLn.num = pjj - pj;
