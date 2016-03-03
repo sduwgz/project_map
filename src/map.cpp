@@ -100,7 +100,8 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     }
     else {
         //Match
-        return laplace1(delta) + pI(0) + pD(0, moleLen) - background(delta);
+        return laplace1(delta)  - background(delta);
+        //return laplace1(delta) + pI(0) + pD(0, moleLen) - background(delta);
     }
 }
 
@@ -250,10 +251,13 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
         }
     }
     //the first row is inited to zero, and the first and second rows are inited to pI(1) and pI(2)
-    for (int j = 0; j <= gene.size(); ++ j) {
+    for(int j = 0; j <= gene.size(); ++ j) {
         dp[0][j] = 0.0;
         dp[1][j] = pI(1);
         dp[2][j] = pI(2);
+    }
+    for(int i = 0; i <= mole.dis.size(); ++ i) {
+        dp[i][0] = -3 * i;
     }
     for(int i = 1; i <= mole.dis.size(); ++ i) {
         for(int j = 1; j <= gene.size(); ++ j) {
@@ -364,7 +368,7 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
     
     //max the highest score in the last row
     mole.mapRet.score = max;
-    
+    /*
     if (mole.mapRet.alignMolePosition.first < 3) {
         mole.mapRet.label = true; 
         return true;
@@ -372,6 +376,9 @@ bool Map::whole_DP_score(Mole& mole, vector<int>& gene) {
 
     cerr << "case 2 map failure" <<endl; 
     return false;
+    */
+    mole.mapRet.label = true; 
+    return true;
 }
 
 void Map::print_score(const string filename, const vector< Mole >& moleSet) {
