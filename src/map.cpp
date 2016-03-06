@@ -60,8 +60,6 @@ double Map::validScore(int moleB, int moleE, int geneB, int geneE, const vector<
     }
     //get the length of gene
     for(int j = geneB; j <= geneE; ++ j) {
-        if(gene[j] < 1000){
-        }
         geneLen += gene[j];
     }
     /*
