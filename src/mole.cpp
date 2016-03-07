@@ -7,29 +7,17 @@
 #include <cassert>
 
 #include "SplitString.h"
-using namespace std;
-
-Mole& Mole::operator = (const Mole & o) {
-    if(&o != this) {
-        id = o.id;
-        len = o.len;
-        enzymeDisNum = o.enzymeDisNum;
-        dis.assign(o.dis.begin(), o.dis.end());
-        pos.assign(o.pos.begin(), o.pos.end());
-    }
-    return *this;
-}
 
 Mole Mole::reverseMole() {
-    Mole revM;
-    revM.id = -id;
-    revM.len = len;
-    revM.enzymeDisNum = enzymeDisNum;
-    vector < int > tmp;
-    tmp.assign(dis.begin(), dis.end());
-    reverse(tmp.begin(), tmp.end());
-    revM.dis.assign(tmp.begin(), tmp.end());
-    return revM;
+    Mole reMole;
+    reMole.id = -id;
+    reMole.length = length;
+    reMole.enzymeNumBer = enzymeNumBer;
+    std::vector< int > data;
+    data.assign(distace.begin(), distace.end());
+    reverse(data.begin(), data.end());
+    reMole.dis.assign(data.begin(), data.end());
+    return reMole;
 }
 /*
    bool Mole::operator != (const Mole& o) const {
@@ -37,74 +25,53 @@ Mole Mole::reverseMole() {
    }*/
 
 
-bool Mole::getDis() {
-    assert(pos.size() > 0);
-    dis.resize(pos.size() - 2); 
-    int j = 0;
-    for (int i = 0; i < pos.size() - 2; ++i) {
-        int disOne = pos[i + 1] - pos[i]; 
-        if (disOne != 0) 
-            dis[j++] = disOne;    
+bool Mole::getDistance() {
+    distion.resize(position.size() - 2); 
+    for (int i = 0; i < position.size() - 2; ++ i) {
+        distance[i] = pos[i + 1] - pos[i]; 
     }
-    dis.resize(j);
     return true;      
 }
 
-void Mole::print() {
-     cout<<"[mole Index] "<<id<< " pos size"<<pos.size()<<" dis size" << dis.size() << endl;
-     cout<<"[mole position] "<<endl;
-     for (int i=0; i<pos.size(); i++)
-         cout<<pos[i]<<"\t";
-     cout<<endl;
-     cout<<"[mole dis]" <<endl;
-     for (int i=0; i<dis.size(); i++)
-         cout<<dis[i]<<"\t";
-     cout<<endl;
-}
-
 bool MoleReader::read(Mole& mole) {
+    if(!_stream){
+        return false;
+    }
     enum {
         eId,
         ePos,
     };
 
-    if(stream) {
-        int state = eId;
-        mole.mole_reset();
-        string line;
-        vector<double> tmp;
-        while (std::getline(stream,line)) {
-            if (state == eId) {
-                tmp = SplitString(line).split2Dbl("\t ,");
-                if (static_cast<int>(tmp[0])==0) {
-                    mole.id = static_cast<int>(tmp[1]); 
-                    state = ePos;
-                } else {
-                    std::cerr<<"input.bin=>invalid line for not start with 0: "<<line<<std::endl;
-                    return false;
+    int state = eId;
+    mole.resetMole();
+    std::string line;
+    std::vector<double> data;
+    while (std::getline(_stream, line)) {
+        if (state == eId) {
+            data = SplitString(line).split2Dbl("\t ,");
+            if (static_cast<int> (data[0]) == 0) {
+                mole.id = static_cast<int> (data[1]);
+                state = ePos;
+            } else {
+                return false;
+            }
+        } else if (state == ePos) {
+            data = SplitString(line).split2Dbl("\t ,");
+            if (static_cast<int>(data[0]) == 1) {
+                mole.position.resize(data.size() - 1,0);    
+                for (int i = 1; i < data.size(); ++ i) {
+                     mole.position[i - 1] = static_cast<long> (data[i]);
                 }
-            } else if (state = ePos) {
-                tmp = SplitString(line).split2Dbl("\t ,");
-                if (static_cast<int>(tmp[0])==1) {
-                    mole.pos.resize(tmp.size()-1,0);    
-                    for (int i = 1; i < tmp.size(); i++) { 
-                         mole.pos[i-1] = static_cast<long>(tmp[i]); 
-                    }
-                    if (mole.pos.size() > 0) {
-                        mole.getDis();
-                    }
-                    std::getline(stream,line);
-                    std::getline(stream,line);
-                    state = eId;
-                    return true;  
-                } else {
-                    std::cerr<<"input.bin=>invalid line for not start with 1: "<<line<<endl;
-                    return false;
+                if (mole.position.size() > 0) {
+                    mole.getDistance();
                 }
+                std::getline(_stream,line);
+                std::getline(_stream,line);
+                state = eId;
+                return true;
+            } else {
+                return false;
             }
         }
-        return false;
     }
-    return false;
-
 }

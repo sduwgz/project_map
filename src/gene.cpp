@@ -15,49 +15,33 @@
 #include <cassert>
 
 #include "SplitString.h"
-using namespace std;
-bool Gene::getDis() {
-    assert(pos.size()>0);
-    dis.resize(pos.size()-1); 
-    int j = 0;
-    for (int i = 0; i < pos.size() - 1; ++i) {
-        int disOne = pos[i+1] - pos[i]; 
-        if (disOne != 0) 
-            dis[j++] = disOne;    
+
+bool Gene::getDistance() {
+    distance.resize(position.size() - 1); 
+    for (int i = 0; i < position.size() - 1; ++ i) {
+        distance[i] = position[i + 1] - position[i];
     }
-    dis.resize(j);
     return true;      
 }
 
 bool GeneReader::read(Gene& gene) {
-    if(stream) {
-        gene.pos.clear();
-        gene.dis.clear();
-        string line;
-        vector< double > tmp;
-        while (std::getline(stream, line)) {
-            if(line[0] == '#') continue;
-            tmp = SplitString(line).split2Dbl("\t ,");
-            if (static_cast< int >(tmp[0]) == 1) {
-                gene.pos.push_back(static_cast< int > (tmp[5]));
-            } else {
-                std::cerr << "Ref=>invalid line: " << line << endl;
-                return false;
-            }
-        }
-        gene.getDis();
-        return true;
+    if(!_stream) {
+        return false;
     }
-    return false;
-}
-
-void Gene::print() {
-    cout<<"[gene pos]"<<endl;
-    for (int i=0; i<pos.size(); i++) 
-        cout<< pos[i] << "\t";
-    cout<<endl;
-    cout<<"[gene dis]"<<endl;
-    for (int i=0; i<dis.size(); i++) 
-        cout<< dis[i] << "\t";
-    cout<<endl;
+    gene.position.clear();
+    gene.distance.clear();
+    std::string line;
+    std::vector< double > data;
+    while (std::getline(_stream, line)) {
+        if(line[0] == '#') continue;
+        data = SplitString(line).split2Dbl("\t ,");
+        if (static_cast< int > (data[0]) == 1) {
+            gene.position.push_back(static_cast< int > (data[5]));
+        } else {
+            std::cerr << "Ref=>invalid line: " << line << std::endl;
+            return false;
+        }
+    }
+    gene.getDistance();
+    return true;
 }
