@@ -12,11 +12,11 @@ Mole Mole::reverseMole() {
     Mole reMole;
     reMole.id = -id;
     reMole.length = length;
-    reMole.enzymeNumBer = enzymeNumBer;
+    reMole.enzymeNumber = enzymeNumber;
     std::vector< int > data;
-    data.assign(distace.begin(), distace.end());
+    data.assign(distance.begin(), distance.end());
     reverse(data.begin(), data.end());
-    reMole.dis.assign(data.begin(), data.end());
+    reMole.distance.assign(data.begin(), data.end());
     return reMole;
 }
 /*
@@ -26,11 +26,11 @@ Mole Mole::reverseMole() {
 
 
 bool Mole::getDistance() {
-    distion.resize(position.size() - 2); 
+    distance.resize(position.size() - 2); 
     for (int i = 0; i < position.size() - 2; ++ i) {
-        distance[i] = pos[i + 1] - pos[i]; 
+        distance[i] = position[i + 1] - position[i];
     }
-    return true;      
+    return true;
 }
 
 bool MoleReader::read(Mole& mole) {
@@ -39,7 +39,7 @@ bool MoleReader::read(Mole& mole) {
     }
     enum {
         eId,
-        ePos,
+        ePosition,
     };
 
     int state = eId;
@@ -51,14 +51,14 @@ bool MoleReader::read(Mole& mole) {
             data = SplitString(line).split2Dbl("\t ,");
             if (static_cast<int> (data[0]) == 0) {
                 mole.id = static_cast<int> (data[1]);
-                state = ePos;
+                state = ePosition;
             } else {
                 return false;
             }
-        } else if (state == ePos) {
+        } else if (state == ePosition) {
             data = SplitString(line).split2Dbl("\t ,");
             if (static_cast<int>(data[0]) == 1) {
-                mole.position.resize(data.size() - 1,0);    
+                mole.position.resize(data.size() - 1,0);
                 for (int i = 1; i < data.size(); ++ i) {
                      mole.position[i - 1] = static_cast<long> (data[i]);
                 }
