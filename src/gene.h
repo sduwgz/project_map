@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+
 class Gene {
 public:
     typedef std::vector < long > Position;

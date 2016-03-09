@@ -1,20 +1,13 @@
-// Last Update:2015-11-10 17:00:32
-/**
- * @file gene.cpp
- * @brief 
- * @author Yanbo Li, liyanbo@ict.ac.cn
- * @version 0.1.00
- * @date 2015-10-21
- */
-
 #include "gene.h"
 
-#include <stdlib.h>
-#include <numeric>
-#include <iostream>
-#include <cassert>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp> 
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
-#include "SplitString.h"
+#include <log4cxx/logger.h>
+
+static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("mole.main"));
 
 bool Gene::getDistance() {
     distance.resize(position.size() - 1); 
@@ -30,15 +23,17 @@ bool GeneReader::read(Gene& gene) {
     }
     gene.position.clear();
     gene.distance.clear();
-    std::string line;
-    std::vector< double > data;
-    while (std::getline(_stream, line)) {
-        if(line[0] == '#') continue;
-        data = SplitString(line).split2Dbl("\t ,");
-        if (static_cast< int > (data[0]) == 1) {
-            gene.position.push_back(static_cast< int > (data[5]));
+    std::string buf;
+    std::vector< std::string > data;
+    while (std::getline(_stream, buf)) {
+        boost::algorithm::trim(buf);
+        if (buf.empty()) continue;
+        if(boost::algorithm::starts_with(buf, "#")) continue;
+        boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" "), boost::algorithm::token_compress_on);
+        if (boost::lexical_cast< int > (data[0]) == 1) {
+            gene.position.push_back(static_cast< int > (boost::lexical_cast< double > (data[5])));
         } else {
-            std::cerr << "Ref=>invalid line: " << line << std::endl;
+            LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for gene file: %s") % buf);
             return false;
         }
     }
