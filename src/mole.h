@@ -2,7 +2,6 @@
 #define mole_h__
 
 #include <vector>
-#include <cfloat>
 #include <iostream>
 
 #include "constant.h"
