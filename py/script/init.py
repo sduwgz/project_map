@@ -50,5 +50,21 @@ def read_moles(f):
     return mole_set
 
 def read_map(f):
-    #TODO
-    return 0
+    return 1
+'''
+    for line in ifilter(lambda x: len(x) > 0, imap(string.strip, f)):
+        mole_set = {}
+        ref = []
+        mole_id = int(line.split()[1])
+        direct = line.split()[6]
+        pos = 18
+        while pos < len(line):
+            left = pos + 1
+            right = pos + 2
+            if left == -1 or right ==  -1:
+                pos += 3
+                continue
+            start = line.split()[pos]
+            pos += 3
+
+'''     

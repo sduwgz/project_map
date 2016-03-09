@@ -8,7 +8,7 @@ def read_map(f):
         number = int(line.split()[0])
         start_site = int(line.split()[1])
         end_site = int(line.split()[2])
-        map_result[number] = (start_site, end_site) 
+        map_result[number] = (start_site, end_site)
     return map_result
 
 if __name__ == '__main__':
@@ -19,12 +19,14 @@ if __name__ == '__main__':
     for line in ifilter(lambda x: len(x) > 0, imap(string.strip, sys.stdin)):
         if huada_map.has_key(int(line.split()[0])):
             total += 1
-            start_site = int(line.split()[1])
-            end_site = int(line.split()[2])
-            if abs(start_site - huada_map[int(line.split()[0])][0]) < 3 or abs(end_site - huada_map[int(line.split()[0])][1]) < 3:
+            start_site = int(line.split()[2])
+            end_site = int(line.split()[3])
+            if abs(start_site - huada_map[int(line.split()[0])][0]) < 3 or abs(end_site - huada_map[int(line.split()[0])][1]) < 3 or (start_site - huada_map[int(line.split()[0])][0] < 0 and end_site - huada_map[int(line.split()[0])][1] > 0):
                 match += 1
+                #print "%s "%line
+                #print huada_map[int(line.split()[0])]
             else:
-                print "%s "%line,
-                print huada_map[int(line.split()[0])]
+                print "%s "%line
+                print "%d %d"%(huada_map[int(line.split()[0])][0], huada_map[int(line.split()[0])][1])
     print 'Total: %d'%total
     print 'Match: %d'%match

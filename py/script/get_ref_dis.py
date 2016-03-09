@@ -1,25 +1,13 @@
-#!/usr/bin/python
+import init
+import sys
 
-def main():
-    f = open("ref.cmap")
-    for i in range(6):
-        f.readline();
-   
-    pos = {}
-    dis = {}
-    line = f.readline().strip()
-    data = line.split()
-    while int(data[4]) == 1:
-        pos[int(data[3])] = float(data[5])
-        line = f.readline().strip()
-        data = line.split()
-    f.close()
-    for idx in pos:
-        if idx+1 not in pos:
-            break
-        dis[idx] = pos[idx+1] - pos[idx]
-        print idx+1,idx,dis[idx]
-    #for idx in dis:
-     #   print "dis[%d]"%(idx),dis[idx]
-
-main()        
+if __name__ == '__main__':
+    start = int(sys.argv[1])
+    end = int(sys.argv[2])
+    with file('/home/wei/wei/study/nano/nanoMap/data/ref_filter.cmap') as f:
+        dis = init.read_ref(f)
+    i = start
+    while i < end:
+        print '%d'%dis[i],
+        i += 1
+    
