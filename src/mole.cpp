@@ -6,7 +6,11 @@
 #include <algorithm>
 #include <cassert>
 
-#include "SplitString.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp> 
+#include <boost/foreach.hpp>
+
+//#include <log4cxx/logger.h>
 
 Mole Mole::reverseMole() {
     Mole reMole;
@@ -19,11 +23,6 @@ Mole Mole::reverseMole() {
     reMole.distance.assign(data.begin(), data.end());
     return reMole;
 }
-/*
-   bool Mole::operator != (const Mole& o) const {
-   return id != o.id;
-   }*/
-
 
 bool Mole::getDistance() {
     distance.resize(position.size() - 2); 
@@ -38,40 +37,47 @@ bool MoleReader::read(Mole& mole) {
         return false;
     }
     enum {
-        eId,
-        ePosition,
+        moleId,
+        molePosition,
+        moleQX01,
+        moleQX02,
     };
 
-    int state = eId;
-    mole.resetMole();
-    std::string line;
-    std::vector<double> data;
-    while (std::getline(_stream, line)) {
-        if (state == eId) {
-            data = SplitString(line).split2Dbl("\t ,");
-            if (static_cast<int> (data[0]) == 0) {
-                mole.id = static_cast<int> (data[1]);
-                state = ePosition;
+    int state = moleId;
+    std::string buf;
+    std::vector<std::string> data;
+    mole.reset();
+    while (std::getline(_stream, buf)) {
+        boost::algorithm::trim(buf);
+        if (buf.empty()) continue;
+        if (state == moleId) {
+            boost::algorithm::split(data, buf, boost::algorithm::is_any_of("\t"), boost::algorithm::token_compress_on);
+            if (boost::lexical_cast<int>(data[0]) == 0) {
+                mole.id = boost::lexical_cast<int> (data[1]);
+                state = molePosition;
             } else {
+                //LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole id: %s") % buf);
                 return false;
             }
-        } else if (state == ePosition) {
-            data = SplitString(line).split2Dbl("\t ,");
-            if (static_cast<int>(data[0]) == 1) {
-                mole.position.resize(data.size() - 1,0);
+        } else if (state == molePosition) {
+            data = boost::algorithm::split(data, buf, boost::algorithm::is_any_of("\t"), boost::algorithm::token_compress_on);
+            if (boost::lexical_cast<int>(data[0]) == 1) {
                 for (int i = 1; i < data.size(); ++ i) {
-                     mole.position[i - 1] = static_cast<long> (data[i]);
+                    mole.position.push_back(static_cast< long > (boost::lexical_cast< double >(data[i])));
                 }
                 if (mole.position.size() > 0) {
                     mole.getDistance();
                 }
-                std::getline(_stream,line);
-                std::getline(_stream,line);
-                state = eId;
-                return true;
+                state = moleQX01;
             } else {
+                //LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole position: %s") % buf);
                 return false;
             }
+        } else if (state == moleQX01) {
+            state = moleQX02;
+        } else if (state == moleQX02) {
+            state = moleId;
+            return true;
         }
     }
 }

@@ -28,7 +28,7 @@ public:
     bool getDistance(); 
     //bool moleToFLES();
     Mole reverseMole();    
-    void resetMole() {
+    void reset() {
         id = -1;
         position.clear();
         distance.clear();
