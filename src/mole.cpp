@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <numeric>
-#include <iostream>
 #include <algorithm>
 #include <cassert>
 
@@ -14,20 +13,16 @@
 
 Mole Mole::reverseMole() {
     Mole reMole;
-    reMole.id = -id;
-    reMole.length = length;
-    reMole.enzymeNumber = enzymeNumber;
-    std::vector< int > data;
-    data.assign(distance.begin(), distance.end());
-    reverse(data.begin(), data.end());
-    reMole.distance.assign(data.begin(), data.end());
+    reMole._id = -_id;
+    reMole._distance.assign(_distance.begin(), _distance.end());
+    reverse(reMole._distance.begin(), reMole._distance.end());
     return reMole;
 }
 
 bool Mole::getDistance() {
-    distance.resize(position.size() - 2); 
-    for (int i = 0; i < position.size() - 2; ++ i) {
-        distance[i] = position[i + 1] - position[i];
+    _distance.clear();
+    for (int i = 0; i < _position.size() - 2; ++ i) {
+        _distance.push_back(_position[i + 1] - _position[i]);
     }
     return true;
 }
@@ -53,7 +48,7 @@ bool MoleReader::read(Mole& mole) {
         if (state == moleId) {
             boost::algorithm::split(data, buf, boost::algorithm::is_any_of("\t"), boost::algorithm::token_compress_on);
             if (boost::lexical_cast<int>(data[0]) == 0) {
-                mole.id = boost::lexical_cast<int> (data[1]);
+                mole._id = boost::lexical_cast<int> (data[1]);
                 state = molePosition;
             } else {
                 //LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole id: %s") % buf);
@@ -63,9 +58,9 @@ bool MoleReader::read(Mole& mole) {
             data = boost::algorithm::split(data, buf, boost::algorithm::is_any_of("\t"), boost::algorithm::token_compress_on);
             if (boost::lexical_cast<int>(data[0]) == 1) {
                 for (int i = 1; i < data.size(); ++ i) {
-                    mole.position.push_back(static_cast< long > (boost::lexical_cast< double >(data[i])));
+                    mole._position.push_back(static_cast< long > (boost::lexical_cast< double >(data[i])));
                 }
-                if (mole.position.size() > 0) {
+                if (mole._position.size() > 0) {
                     mole.getDistance();
                 }
                 state = moleQX01;

@@ -9,55 +9,34 @@
 
 #ifndef MAP_H
 #define MAP_H
-#include <boost/math/distributions/poisson.hpp>
-#include <boost/math/distributions/normal.hpp>
-#include <boost/math/distributions/laplace.hpp>
-#include <boost/math/distributions/exponential.hpp>
-#include <math.h>
+
 #include <vector>
 #include <string>
-class Mole;
-//#include "mole.h" 
 
-using namespace std;
-using namespace boost::math;
+#include "mole.h" 
+
+
+typedef std::vector< int > Fragment;
+
 class Map {
-private:
-    double mu;
-    double sigma;
-    double alpha;
-    double beta;
-    int MINCNT;
-    vector < int > mapDis;
-    vector < pair < int,int > > mapNum;
-    string outPrefix;//输出文件路径
 public:
-     Map(double _mu, double _sigma, double _alpha, double _beta, int _MINCNT, string _outPrefix) : mu(_mu), sigma(_sigma), alpha(_alpha), beta(_beta), MINCNT(_MINCNT),outPrefix(_outPrefix) {}; 
-     bool local_map_score(vector<Mole>& moleSet,vector<int>& gene);
-     bool whole_map_score(vector<Mole>& moleSet,vector<int>& gene); 
-     bool local_DP_score(Mole& mole, vector<int>& gene);
-     bool whole_DP_score(Mole& mole, vector<int>& gene);
-     void print_score(const string filename, const vector< Mole >& moleSet); 
-     bool change_parameter(vector<Mole> & moleSet);
-     double validScore(int a, int b);
-     double validScore(int moleB, int moleE, int geneB, int geneE, const vector<int> & mole, const vector<int> & gene); 
-     double guss(int delta);
-     double laplace(int delta);
-     double laplace1(int delta);
-     double pD(int siteNumber, int moleLen);
-     double pI(int k);
-     double background(int delta);
-     void remove_noise(vector<Mole>& moleSet,vector<int>& gene); 
-     void get_background_distribution(); 
-     /*public:
-     bool local_map(vector<Mole>& moleSet,vector<int>& gene);
-     bool whole_map(vector<Mole>& moleSet,vector<int>& gene); 
-     bool local_DP(Mole& mole, vector<int>& gene);
-     bool whole_DP(Mole& mole, vector<int>& gene);
-*/
-
+     Map(double mu, double sigma, double alpha, double beta, int MINCNT, std::string outPrefix) : _mu(mu), _sigma(sigma), _alpha(alpha), _beta(beta), _MINCNT(MINCNT), _outPrefix(outPrefix) {};
+     bool whole_map_score(std::vector<Mole>& moleSet, const std::vector<int>& gene) const;
+     bool whole_DP_score(Mole& mole, const std::vector<int>& gene) const;
+     void print_score(const std::string& filename, const std::vector< Mole >& moleSet) const;
+     double validScore(const Fragment& moleFragment, const Fragment& geneFragment) const;
+     
+     double guss(int delta) const;
+     double laplace(int delta) const;
+     double pD(int siteNumber, int moleLen) const;
+     double probInsertion(int k) const;
+     double background(int delta) const;
+private:
+    double _mu;
+    double _sigma;
+    double _alpha;
+    double _beta;
+    int _MINCNT;
+    std::string _outPrefix;
 };
-    
-
-
 #endif  /*MAP_H*/
