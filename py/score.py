@@ -23,10 +23,18 @@ def valid_score(mole_block, ref_block):
         if i < 1000:
             miss_site += 1
     delta = mb_length - rb_length
+    #2 to 2
+    if len(mb) > 1 and len(rb) > 1:
+        delete = int(((len(rb) - miss_site - 1 + 0.0) / mb_length * 10000 ) + 0.5)
+        if delete < 1:
+            delete = 1
+        if delete > 20:
+            delete = 20
+        score = guss(delta) + pI(len(mb) ) + pD(delete) - background(delta)
     if len(mb) > 1:
         #log(pI(number)) is the punish of score
         score = guss(delta) + pI(len(mb) ) - background(delta)
-    elif len(rb) - miss_site > 1:
+    elif len(rb) - miss_site> 1:
         delete = int(((len(rb) - miss_site - 1 + 0.0) / mb_length * 10000 ) + 0.5)
         if delete < 1:
             delete = 1
