@@ -1,15 +1,13 @@
 #include "mole.h"
 
-#include <stdlib.h>
-#include <numeric>
-#include <algorithm>
-#include <cassert>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp> 
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
-//#include <log4cxx/logger.h>
+#include <log4cxx/logger.h>
+
+static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("mole.main"));
 
 Mole Mole::reverseMole() {
     Mole reMole;
@@ -51,7 +49,7 @@ bool MoleReader::read(Mole& mole) {
                 mole._id = boost::lexical_cast<int> (data[1]);
                 state = molePosition;
             } else {
-                //LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole id: %s") % buf);
+                LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole id: %s") % mole._id);
                 return false;
             }
         } else if (state == molePosition) {
@@ -65,7 +63,7 @@ bool MoleReader::read(Mole& mole) {
                 }
                 state = moleQX01;
             } else {
-                //LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole position: %s") % buf);
+                LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole position: %s") % buf);
                 return false;
             }
         } else if (state == moleQX01) {

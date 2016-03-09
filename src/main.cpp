@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdarg>
 #include <unistd.h>
-#include <fstream>
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -23,19 +22,15 @@ static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
 static const char *opt_string = "m:g:o:c:";
 
-int printHelp() {
-    std::cout << "USAGE : ./Nano-ARCS -g [input gene file name] -m [input mole file name][other options]" << std::endl;
-    std::cout << "-g\tgene file name" << std::endl;
-    std::cout << "-m\tmole file name" << std::endl;
-    std::cout << "-c\tlog config file name" << std::endl;
-    std::cout << "-o\toutput directory[default .]" << std::endl;
-    std::cout << std::endl;
+
+int printHelps() {
+    std::cout << "USAGE : ./map -g [input gene file] -m [input mole file] -o [output file] -c [log.config file]" << std::endl;
     return 1;
 }
 
 int main(int argc, char* argv[]) {
     if (argc < 4) {
-        return printHelp();
+        return printHelps();
     }
 
     Properties options;
