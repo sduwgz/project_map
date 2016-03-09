@@ -1,96 +1,109 @@
-// Last Update:2015-11-13 15:28:03
-/**
- * @file main.cpp
- * @brief 
- * @author Yanbo Li, liyanbo@ict.ac.cn
- * @version 0.1.00
- * @date 2015-10-22
- */
-
-
+#include <iostream>
 #include <cstdarg>
-#include <climits>
+#include <unistd.h>
+#include <fstream>
+
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+
+#include <log4cxx/logger.h>
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/propertyconfigurator.h>
 
 #include "mole.h"
 #include "gene.h"
 #include "map.h"
 
-#include "SplitString.h"
+typedef boost::property_tree::ptree Properties;
 
-static const char *optStr = "o:c:m:g:";
+typedef std::vector< Mole > MoleSet;
+
+static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
+
+static const char *opt_string = "m:g:o:c:";
 
 int printHelp() {
     std::cout << "USAGE : ./Nano-ARCS -g [input gene file name] -m [input mole file name][other options]" << std::endl;
     std::cout << "-g\tgene file name" << std::endl;
     std::cout << "-m\tmole file name" << std::endl;
-    std::cout << "-c\tmin length to map" << std::endl;
+    std::cout << "-c\tlog config file name" << std::endl;
     std::cout << "-o\toutput directory[default .]" << std::endl;
     std::cout << std::endl;
     return 1;
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char* argv[]) {
     if (argc < 4) {
         return printHelp();
     }
 
-    std::string geneFileName;
-    std::string moleFileName;
-    int MINCNT = 3;
-    std::string outPrefix = "../whole_map/";
+    Properties options;
+    {
+        int opt = -1;
+        while ((opt = getopt(argc, argv, opt_string)) != -1) {
+            std::string key = std::string(1, (char)opt);
+            if (optarg == NULL) {
+                options.put(key, NULL);
+            } else {
+                std::string val = optarg;
+                options.put(key, val);
+            }
+        }
+    }
+    std::string log_config = options.get< std::string >("c", kLogConfig);
+    if (boost::filesystem::exists(log_config)) {
+        log4cxx::PropertyConfigurator::configure(log_config);
+    } else {
+        log4cxx::BasicConfigurator::configure();
+    }
 
-    int opt = -1;
-    while ((opt = getopt(argc, argv, optStr)) != -1) {
-        switch(opt){
-            case 'g': geneFileName = optarg; break;
-            case 'm': moleFileName = optarg; break;  
-            case 'c': MINCNT = atoi(optarg); break;
-            case 'o': outPrefix = optarg; break;
-            default: printHelp(); 
-        }
-    }
-    
-    //std::cout<< "[INFO]" << "Read whole gene. File name: " << geneFileName << std::endl;
-    //load ref_file
+   
     Gene g;
-    {
-        ifstream geneIn(geneFileName.c_str());
-        GeneReader gReader(geneIn);
+    std::string gene_file = options.get< std::string >("g", "");
+    if (boost::filesystem::exists(gene_file)) {
+        std::ifstream geneInstream(gene_file.c_str());
+        GeneReader gReader(geneInstream);
         if (!gReader.read(g)) {
-            //std::cout << "[REPORT]" << "The gene has been inited." << std::endl;
-        //else{ 
-            std::cout << "[REPORT]" << "The gene is bad." << std::endl;
-            exit(EXIT_FAILURE);
+            LOG4CXX_WARN(logger, boost::format("load %s failed.") % gene_file);
+            return 1;
+        } else {
+            LOG4CXX_DEBUG(logger, boost::format("load %s successed.") % gene_file);
         }
-        //std::cout<< "[INFO]" << "Read mole. File name: " << moleFileName << std::endl;
+    } else {
+        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % gene_file);
+        return 1;
     }
-    //load mole_file
-    vector<Mole> moleSet;
-    {
+    MoleSet moleSet;
+    std::string mole_file = options.get< std::string >("m", "");
+    if (boost::filesystem::exists(mole_file)) {
+        std::ifstream moleInstream(mole_file.c_str());
+        MoleReader mReader(moleInstream);
         Mole m;
-        ifstream moleIn(moleFileName.c_str());
-        MoleReader mReader(moleIn);
-       
-       while (mReader.read(m)) {
+        while (mReader.read(m)) {
             moleSet.push_back(m);
-            Mole revM = m.reverseMole();
-            moleSet.push_back(revM);
+            Mole reMole = m.reverseMole();
+            moleSet.push_back(reMole);
         }
         int mole_number = moleSet.size();
-        if(mole_number == 0){
-            std::cout << "[REPORT]" << "No mole is in moleSet." << std::endl; 
-            exit(EXIT_FAILURE);
+        if (mole_number == 0) {
+            LOG4CXX_WARN(logger, "no mole is in moleSet");
+            return 1;
+        } else {
+            LOG4CXX_DEBUG(logger, boost::format("%s moles have been inited.") % mole_number);
         }
-    //std::cout << "[REPORT]" << mole_number << " moles have been inited." << std::endl;
+    } else {
+        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % mole_file);
+        return 1;
     }
+    std::string out_file = options.get< std::string >("o", defaultOutFile);
 
     double mean=46.0, variance=570;
     double beta = 0.15;
     double alpha = 0.15;
  
-    Map maptool(mean, variance, alpha, beta, MINCNT,outPrefix);
-    maptool.whole_map_score(moleSet, g.dis);
+    Map maptool(mean, variance, alpha, beta, out_file);
+    maptool.whole_map_score(moleSet, g.distance);
     
     return 1;
 }
-

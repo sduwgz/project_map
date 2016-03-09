@@ -20,7 +20,7 @@ typedef std::vector< int > Fragment;
 
 class Map {
 public:
-     Map(double mu, double sigma, double alpha, double beta, int MINCNT, std::string outPrefix) : _mu(mu), _sigma(sigma), _alpha(alpha), _beta(beta), _MINCNT(MINCNT), _outPrefix(outPrefix) {};
+     Map(double mu, double sigma, double alpha, double beta, const std::string outPrefix) : _mu(mu), _sigma(sigma), _alpha(alpha), _beta(beta), _outPrefix(outPrefix) {};
      bool whole_map_score(std::vector<Mole>& moleSet, const std::vector<int>& gene) const;
      bool whole_DP_score(Mole& mole, const std::vector<int>& gene) const;
      void print_score(const std::string& filename, const std::vector< Mole >& moleSet) const;
@@ -36,7 +36,6 @@ private:
     double _sigma;
     double _alpha;
     double _beta;
-    int _MINCNT;
     std::string _outPrefix;
 };
 #endif  /*MAP_H*/

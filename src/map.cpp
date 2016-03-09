@@ -9,7 +9,7 @@
 
 #include <math.h>
 #include <numeric>
-#include "Types.h"
+#include <fstream>
 
 #include <boost/math/distributions/poisson.hpp>
 #include <boost/math/distributions/normal.hpp>
@@ -20,8 +20,7 @@ bool Map::whole_map_score(std::vector<Mole>& moleSet, const std::vector <int>& g
     for (int i = 0; i < moleSet.size(); i += 2) {
         moleSet[i].resetMapRet();
         moleSet[i + 1].resetMapRet();
-        //MINCNT is a threshold of the min site in mole
-        if (moleSet[i]._distance.size() < _MINCNT) continue;
+        if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) continue;
         //dp
         whole_DP_score(moleSet[i], gene);
         whole_DP_score(moleSet[i + 1], gene);
