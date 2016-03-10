@@ -20,7 +20,7 @@ typedef std::vector< Mole > MoleSet;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
-static const char *opt_string = "m:g:o:c:";
+static const char *opt_string = "m:g:o:c:p:";
 
 
 int printHelps() {
@@ -92,13 +92,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::string out_file = options.get< std::string >("o", defaultOutFile);
-
-    double mean=46.0, variance=570;
-    double beta = 0.15;
-    double alpha = 0.15;
- 
-    Map maptool(mean, variance, alpha, beta, out_file);
-    maptool.whole_map_score(moleSet, g.distance);
+    std::string parameter_file = options.get< std::string >("p", defaultParameterFile);
+    
+    Map maptool;
+    if (!maptool.initParameters(parameter_file)) {
+        LOG4CXX_WARN(logger, boost::format("%s, init parameter error.") % parameter_file);
+        return 1;
+    }
+    maptool.run(moleSet, g.distance);
     
     return 1;
 }
