@@ -3,6 +3,7 @@
 //log4cxx config file
 const char* kLogConfig = "log4cxx.properties";
 const char* defaultOutFile = "map_position_data";
+const char* defaultParameterFile = "parameter.ini";
 
 //Length of integral interval
 const int Interval = 100;

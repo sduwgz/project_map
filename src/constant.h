@@ -4,6 +4,7 @@
 //log4cxx config file
 extern const char* kLogConfig;
 extern const char* defaultOutFile;
+extern const char* defaultParameterFile;
 
 //Length of integral interval
 extern const int Interval;
