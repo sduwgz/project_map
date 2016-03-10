@@ -1,36 +1,36 @@
-/**
- * @file map.cpp
- * @author Yanbo Li, liyanbo@ict.ac.cn
- * @author Guozheng Wei, weiguozheng@ict.ac.cn
- * @date 2015-12-30
- */
-
 #include "map.h"
 
 #include <math.h>
-#include <numeric>
 #include <fstream>
+
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include <boost/math/distributions/poisson.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/laplace.hpp>
 #include <boost/math/distributions/exponential.hpp>
 
-bool Map::whole_map_score(std::vector<Mole>& moleSet, const std::vector <int>& gene) const {
+#include <log4cxx/logger.h>
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/propertyconfigurator.h>
+
+static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
+
+bool Map::run(MoleSet& moleSet, const std::vector <int>& gene) const {
     for (int i = 0; i < moleSet.size(); i += 2) {
-        moleSet[i].resetMapRet();
-        moleSet[i + 1].resetMapRet();
-        if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) continue;
-        //dp
+        if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) {
+            LOG4CXX_DEBUG(logger, boost::format("mole %s is too short.") % (moleSet[i]._id));
+            continue;
+        };
         whole_DP_score(moleSet[i], gene);
         whole_DP_score(moleSet[i + 1], gene);
-        //between the reversed mole and the mole, choose the better one
         if (!moleSet[i].mapRet.label && !moleSet[i + 1].mapRet.label) {
-            std::cerr << moleSet[i]._id << " and " << moleSet[i + 1]._id << " can not map head to tail" << std::endl;
+            LOG4CXX_DEBUG(logger, boost::format("%s and %s can not map head to tail") % (moleSet[i]._id) % moleSet[i + 1]._id);
         }
     }
-    std::string filename = _outPrefix;
-    print_score(filename, moleSet);
     return true;
 }
 
@@ -80,19 +80,20 @@ double Map::validScore(const Fragment& moleFragment, const Fragment& geneFragmen
 }
 
 double Map::pD(int siteNumber, int moleLength) const {
-    int deleteNumber = (int)((siteNumber + 0.0) / moleLength * UNIT_LENGTH + 0.5);
+    int deleteNumber = static_cast< int > ((siteNumber + 0.0) / moleLength * UNIT_LENGTH + 0.5);
     if (deleteNumber < 1) {
         deleteNumber = 1;
     } else if (deleteNumber > MAX_DELETION) {
         deleteNumber = MAX_DELETION;
     }
-    double lambd = 0.225;
-    boost::math::poisson_distribution<> p(lambd);
+    double lambda = _parameters.find("lambda_poisson")->second;
+    boost::math::poisson_distribution<> p(lambda);
     return log(boost::math::pdf(p, deleteNumber));
 }
 
 double Map::probInsertion(int k) const {
-    boost::math::exponential_distribution<> e(5);
+    double lambda = _parameters.find("lambda_exponent")->second;
+    boost::math::exponential_distribution<> e(lambda);
     if (k == 0) {
         return log(cdf(e, 0.5) - cdf(e, 0));
     } 
@@ -100,7 +101,8 @@ double Map::probInsertion(int k) const {
 }
 
 double Map::background(int delta) const {
-    double mu = 1870.0, sigma = 10840.0;
+    double mu = _parameters.find("mu_background")->second;
+    double sigma = _parameters.find("sigma_background")->second;
     boost::math::normal_distribution<> n(mu, sigma);
     int distance = delta - mu;
     int d = distance / Interval;
@@ -114,8 +116,8 @@ double Map::background(int delta) const {
 }
 
 double Map::laplace(int delta) const {
-    double mu = 46.0;
-    double sigma = 403.0;
+    double mu = _parameters.find("mu_laplace")->second;
+    double sigma = _parameters.find("sigma_laplace")->second;
     boost::math::laplace_distribution<> l(mu, sigma);
     int distance = delta - mu;
     int d = distance / Interval;
@@ -288,4 +290,23 @@ void Map::print_score(const std::string& filename, const std::vector< Mole >& mo
             out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignLenNum[j].first.len << "\t" << moleSet[i].mapRet.alignLenNum[j].second.len << "\n";
         }
     }
+}
+
+bool Map::initParameters(const std::string& parameter_file) {
+    boost::property_tree::ptree parameters;
+    if (boost::filesystem::exists(parameter_file)) {
+        try {
+            boost::property_tree::read_ini(parameter_file, parameters);
+        } catch (const boost::property_tree::ini_parser_error& e) {
+            LOG4CXX_ERROR(logger, boost::format("load %s failed(%s).") % parameter_file % e.what());
+            return false;
+        }
+    } else {
+        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % parameter_file);
+        return false;
+    }
+    for (boost::property_tree::ptree::const_iterator it = parameters.begin(); it != parameters.end(); it++){
+       _parameters[it->first] = boost::lexical_cast<double> (it->second.data());
+    }
+    return true;
 }
