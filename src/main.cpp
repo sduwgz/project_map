@@ -99,7 +99,8 @@ int main(int argc, char* argv[]) {
         LOG4CXX_WARN(logger, boost::format("%s, init parameter error.") % parameter_file);
         return 1;
     }
-    maptool.run(moleSet, g.distance);
+    maptool.run(moleSet, g);
+    maptool.output(out_file, moleSet);
     
     return 1;
 }
