@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include "mole.h" 
+#include "gene.h" 
 
 
 typedef std::vector< int > Fragment;
@@ -15,10 +16,10 @@ class Map {
 public:
      Map(){};
      bool initParameters(const std::string &parameter_file);
-     bool run(MoleSet& moleSet, const std::vector<int>& gene) const;
+     bool run(MoleSet& moleSet, const Gene& gene) const;
      bool wholeDPscore(Mole& mole, const std::vector<int>& gene) const;
-     void print_score(const std::string& filename, const std::vector< Mole >& moleSet) const;
      double validScore(const Fragment& moleFragment, const Fragment& geneFragment) const;
+     void output(const std::string& filename, const MoleSet& moleSet) const;
      
      double probLaplace(int delta) const;
      double probDeletion(int siteNumber, int moleLength) const;

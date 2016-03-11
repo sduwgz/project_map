@@ -21,14 +21,14 @@ typedef std::pair< int, int > BackTrace;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
-bool Map::run(MoleSet& moleSet, const std::vector <int>& gene) const {
+bool Map::run(MoleSet& moleSet, const Gene& gene) const {
     for (int i = 0; i < moleSet.size(); i += 2) {
         if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) {
             LOG4CXX_DEBUG(logger, boost::format("mole %s is too short.") % (moleSet[i]._id));
             continue;
         };
-        wholeDPscore(moleSet[i], gene);
-        wholeDPscore(moleSet[i + 1], gene);
+        wholeDPscore(moleSet[i], gene._distance);
+        wholeDPscore(moleSet[i + 1], gene._distance);
         if (!moleSet[i].mapRet.label && !moleSet[i + 1].mapRet.label) {
             LOG4CXX_DEBUG(logger, boost::format("%s and %s can not map head to tail") % (moleSet[i]._id) % moleSet[i + 1]._id);
         }
@@ -226,14 +226,14 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
     return true;
 }
 
-void Map::print_score(const std::string& filename, const std::vector< Mole >& moleSet) const {
+void Map::output(const std::string& filename, const std::vector< Mole >& moleSet) const {
     std::ofstream out;
     out.open(filename.c_str());
 
-    for (int i=0; i<moleSet.size(); i++) {
+    for (int i = 0; i<moleSet.size(); ++ i) {
         out << moleSet[i]._id <<"\t" << moleSet[i].mapRet.label <<"\t" << moleSet[i].mapRet.score << "\t" 
             <<  moleSet[i].mapRet.alignMolePosition.first << "\t" << moleSet[i].mapRet.alignMolePosition.second << "\t"  <<  moleSet[i].mapRet.alignGenePosition.first << "\t" << moleSet[i].mapRet.alignGenePosition.second << "\n";
-        for (int j=0; j<moleSet[i].mapRet.moleMapPosition.size(); j++) {
+        for (int j = 0; j<moleSet[i].mapRet.moleMapPosition.size(); ++ j) {
             out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignLenNum[j].first.len << "\t" << moleSet[i].mapRet.alignLenNum[j].second.len << "\n";
         }
     }
