@@ -12,8 +12,8 @@ public:
     virtual ~Gene() {}
     bool getDistance();
 public:  
-    Position position;
-    Distance distance;
+    Position _position;
+    Distance _distance;
     friend class GeneReader;
 };
 
