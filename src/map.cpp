@@ -12,6 +12,9 @@
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/laplace.hpp>
 #include <boost/math/distributions/exponential.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
@@ -20,6 +23,36 @@
 typedef std::pair< int, int > BackTrace;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
+
+bool Map::multiRun(MoleSet& moleSet, const Gene& gene, int threadNumber) const {
+    int block = moleSet.size() / threadNumber + 1;
+    MoleSet *moleSetPtr = &moleSet;
+    boost::thread_group group;
+    for (int i = 0; i != threadNumber; ++ i){
+        group.create_thread(boost::bind(&Map::start, this, moleSetPtr, gene, i, block));
+    }
+    group.join_all();
+}
+
+bool Map::start(MoleSet* moleSetPtr, const Gene& gene, int i, int block) const {
+    MoleSet& moleSet = * moleSetPtr;
+    int start = i * block;
+    if (start > moleSet.size()) {
+        return true;
+    }
+    int end = start + block;
+    if (end > moleSet.size()) {
+        end = moleSet.size();
+    }
+    for (int i = start; i != end; ++ i) {
+        if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) {
+            LOG4CXX_DEBUG(logger, boost::format("mole %s is too short.") % (moleSet[i]._id));
+            continue;
+        };
+        wholeDPscore(moleSet[i], gene._distance);
+    }
+    return true;
+}
 
 bool Map::run(MoleSet& moleSet, const Gene& gene) const {
     for (int i = 0; i < moleSet.size(); i += 2) {
@@ -220,7 +253,6 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
     reverse(mole.mapRet.geneMapPosition.begin(), mole.mapRet.geneMapPosition.end());
     reverse(mole.mapRet.alignLenNum.begin(), mole.mapRet.alignLenNum.end());
 
-    std::cout << mole._id << "\t" << max << "\t" << mole.mapRet.alignGenePosition.first+1 << "\t" <<  mole.mapRet.alignGenePosition.second+1 << "\t" << mole.mapRet.alignMolePosition.first << "\t" <<  mole.mapRet.alignMolePosition.second << std::endl; 
     mole.mapRet.score = max;
     mole.mapRet.label = true; 
     return true;
@@ -238,7 +270,12 @@ void Map::output(const std::string& filename, const std::vector< Mole >& moleSet
         }
     }
 }
-
+void Map::printScore(const MoleSet& moleSet) const {
+    for (int i = 0; i < moleSet.size(); ++ i) {
+        Mole mole = moleSet[i];
+        std::cout << mole._id << "\t" << mole.mapRet.score << "\t" << mole.mapRet.alignGenePosition.first+1 << "\t" <<  mole.mapRet.alignGenePosition.second+1 << "\t" << mole.mapRet.alignMolePosition.first << "\t" <<  mole.mapRet.alignMolePosition.second << std::endl; 
+    }
+}
 bool Map::initParameters(const std::string& parameter_file) {
     boost::property_tree::ptree parameters;
     if (boost::filesystem::exists(parameter_file)) {

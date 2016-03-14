@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
@@ -20,7 +21,7 @@ typedef std::vector< Mole > MoleSet;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
-static const char *opt_string = "m:g:o:c:p:";
+static const char *opt_string = "m:g:o:c:p:t:";
 
 
 int printHelps() {
@@ -93,13 +94,16 @@ int main(int argc, char* argv[]) {
     }
     std::string out_file = options.get< std::string >("o", defaultOutFile);
     std::string parameter_file = options.get< std::string >("p", defaultParameterFile);
+    int thread_number = boost::lexical_cast<int> (options.get< std::string >("t", "4"));
     
     Map maptool;
     if (!maptool.initParameters(parameter_file)) {
         LOG4CXX_WARN(logger, boost::format("%s, init parameter error.") % parameter_file);
         return 1;
     }
-    maptool.run(moleSet, g);
+    maptool.multiRun(moleSet, g, thread_number);
+    //maptool.run(moleSet, g);
+    maptool.printScore(moleSet);
     maptool.output(out_file, moleSet);
     
     return 1;
