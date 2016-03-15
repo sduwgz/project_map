@@ -208,26 +208,26 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
         for (int j = 0; j < cols; ++ j) {
             if (scoreMatrix[mole._distance.size() - i][j] + insertPunish * i > max) {
                 max = scoreMatrix[mole._distance.size() - i][j] + insertPunish * i;
-                mole.mapRet.alignMolePosition.second = mole._distance.size() - i;
-                mole.mapRet.alignGenePosition.second = j;
+                mole.mapRet.alignEndPosition.first = mole._distance.size() - i;
+                mole.mapRet.alignEndPosition.second = j;
             }
         }
     }
 
-    int pi = mole.mapRet.alignMolePosition.second, pj = mole.mapRet.alignGenePosition.second;
+    int pi = mole.mapRet.alignEndPosition.first, pj = mole.mapRet.alignEndPosition.second;
     while(true) {
         int pii = pi, pjj = pj;
         pi = backTrace[pii][pjj].first, pj = backTrace[pii][pjj].second;
         if (pi == -1 && pj == -1) {
-            mole.mapRet.alignMolePosition.first = pii;
-            mole.mapRet.alignGenePosition.first = pjj;
+            mole.mapRet.alignStartPosition.first = pii;
+            mole.mapRet.alignStartPosition.second = pjj;
             break;
         }
 
         int moleFragmentLength = accumulate(mole._distance.begin() + pi, mole._distance.begin() + pii, 0);
         int geneFragmentLength = accumulate(gene.begin() + pj, gene.begin() + pjj, 0);
 
-        mole.mapRet.alignLenNum.push_back(std::make_pair(moleFragmentLength, geneFragmentLength));
+        mole.mapRet.alignFragmentLength.push_back(std::make_pair(moleFragmentLength, geneFragmentLength));
 
         mole.mapRet.moleMapPosition.push_back(std::make_pair(pi, pii - 1));
         mole.mapRet.geneMapPosition.push_back(std::make_pair(pj, pjj - 1));
@@ -236,7 +236,7 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
     //reversed result is more human-facing
     reverse(mole.mapRet.moleMapPosition.begin(), mole.mapRet.moleMapPosition.end());
     reverse(mole.mapRet.geneMapPosition.begin(), mole.mapRet.geneMapPosition.end());
-    reverse(mole.mapRet.alignLenNum.begin(), mole.mapRet.alignLenNum.end());
+    reverse(mole.mapRet.alignFragmentLength.begin(), mole.mapRet.alignFragmentLength.end());
 
     mole.mapRet.score = max;
     return true;
@@ -248,16 +248,16 @@ void Map::output(const std::string& filename, const std::vector< Mole >& moleSet
 
     for (int i = 0; i<moleSet.size(); ++ i) {
         out << moleSet[i]._id << "\t" << "\t" << moleSet[i].mapRet.score << "\t"
-            << moleSet[i].mapRet.alignMolePosition.first << "\t" << moleSet[i].mapRet.alignMolePosition.second << "\t" << moleSet[i].mapRet.alignGenePosition.first << "\t" << moleSet[i].mapRet.alignGenePosition.second << "\n";
+            << moleSet[i].mapRet.alignStartPosition.first << "\t" << moleSet[i].mapRet.alignEndPosition.first << "\t" << moleSet[i].mapRet.alignStartPosition.second << "\t" << moleSet[i].mapRet.alignEndPosition.second << "\n";
         for (int j = 0; j<moleSet[i].mapRet.moleMapPosition.size(); ++ j) {
-            out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignLenNum[j].first << "\t" << moleSet[i].mapRet.alignLenNum[j].second << "\n";
+            out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignFragmentLength[j].first << "\t" << moleSet[i].mapRet.alignFragmentLength[j].second << "\n";
         }
     }
 }
 void Map::printScore(const MoleSet& moleSet) const {
     for (int i = 0; i < moleSet.size(); ++ i) {
         Mole mole = moleSet[i];
-        std::cout << mole._id << "\t" << mole.mapRet.score << "\t" << mole.mapRet.alignGenePosition.first + 1 << "\t" <<  mole.mapRet.alignGenePosition.second + 1 << "\t" << mole.mapRet.alignMolePosition.first << "\t" <<  mole.mapRet.alignMolePosition.second << std::endl;
+        std::cout << mole._id << "\t" << mole.mapRet.score << "\t" << mole.mapRet.alignStartPosition.first + 1 << "\t" <<  mole.mapRet.alignEndPosition.first + 1 << "\t" << mole.mapRet.alignStartPosition.second << "\t" <<  mole.mapRet.alignEndPosition.second << std::endl;
     }
 }
 bool Map::initParameters(const std::string& parameter_file) {

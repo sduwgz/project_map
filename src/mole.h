@@ -6,13 +6,17 @@
 
 #include "constant.h"
 
+typedef std::vector< std::pair< int , int > > FragmentLength;
+typedef std::vector< std::pair< int , int > > MapPosition;
+typedef std::pair < int , int > AlignPosition;
+
 struct MapRet {   
     double score;
-    std::vector< std::pair< int, int > > alignLenNum;
-    std::pair < int, int > alignMolePosition;
-    std::pair < int, int > alignGenePosition;
-    std::vector< std::pair< int, int > > moleMapPosition;
-    std::vector< std::pair< int, int > > geneMapPosition;
+    FragmentLength alignFragmentLength;
+    AlignPosition alignStartPosition;
+    AlignPosition alignEndPosition;
+    MapPosition moleMapPosition;
+    MapPosition geneMapPosition;
 };
 
 class Mole {
