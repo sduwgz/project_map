@@ -39,7 +39,6 @@ bool MoleReader::read(Mole& mole) {
     int state = moleId;
     std::string buf;
     std::vector<std::string> data;
-    mole.reset();
     while (std::getline(_stream, buf)) {
         boost::algorithm::trim(buf);
         if (buf.empty()) continue;

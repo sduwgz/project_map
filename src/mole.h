@@ -6,14 +6,9 @@
 
 #include "constant.h"
 
-struct LenNum {
-    int len;
-    int num;
-};
 struct MapRet {   
-    bool label = false;
     double score;
-    std::vector< std::pair<LenNum,LenNum> > alignLenNum;
+    std::vector< std::pair< int, int > > alignLenNum;
     std::pair < int, int > alignMolePosition;
     std::pair < int, int > alignGenePosition;
     std::vector< std::pair< int, int > > moleMapPosition;
@@ -28,21 +23,6 @@ public:
     virtual ~Mole() {}
     bool getDistance(); 
     Mole reverseMole();    
-    void reset() {
-        _id = -1;
-        _position.clear();
-        _distance.clear();
-        resetMapRet();
-    }
-    void resetMapRet() {
-        mapRet.label = false;
-        mapRet.score = INIT_SCORE;
-        mapRet.alignLenNum.clear();
-        mapRet.alignGenePosition = std::make_pair(-1, -1);
-        mapRet.alignMolePosition = std::make_pair(-1, -1);
-        mapRet.moleMapPosition.clear();
-        mapRet.geneMapPosition.clear();
-    }
     MapRet mapRet;
 public:
     int _id;
