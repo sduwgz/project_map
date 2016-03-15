@@ -73,12 +73,12 @@ double Map::validScore(const Fragment& moleFragment, const Fragment& geneFragmen
     int moleLength = 0, geneLength = 0;
     moleLength = std::accumulate(moleFragment.begin(), moleFragment.end(), 0);
     geneLength = std::accumulate(geneFragment.begin(), geneFragment.end(), 0);
-    
+
     int delta = moleLength - geneLength;
-   
+
     int moleSiteNumber = moleFragment.size() - 1;
     int geneSiteNumber = geneFragment.size() - 1;
-    
+
     if (moleSiteNumber != 0 || geneSiteNumber != 0) {
         return probLaplace(delta) + probDeletion(geneSiteNumber, moleLength) + probInsertion(moleSiteNumber) - probBackground(delta);
     } else {
@@ -149,13 +149,14 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
             backTrace[i][j].second = -1;
         }
     }
-    for (int j = 0; j < cols; ++ j) {
-        scoreMatrix[0][j] = 0.0;
-        scoreMatrix[1][j] = probInsertion(1);
-        scoreMatrix[2][j] = probInsertion(2);
+    double insertPunish = probInsertion(1);
+    for (int i = 0; i < MAX_MISS_MATCH; ++ i) {
+        for (int j = 0; j < cols; ++ j) {
+            scoreMatrix[i][j] = insertPunish * i;
+        }
     }
     for (int i = 0; i < rows; ++ i) {
-        scoreMatrix[i][0] = -3 * i;
+        scoreMatrix[i][0] = insertPunish * i;
     }
     for (int i = 1; i < rows; ++ i) {
         for (int j = 1; j < cols; ++ j) {
@@ -192,7 +193,7 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
                 geneFragment.push_back(gene[j - 2]);
                 moleFragment.push_back(mole._distance[i - 1]);
                 moleFragment.push_back(mole._distance[i - 2]);
-                
+
                 double temp = scoreMatrix[i - 2][j - 2] + validScore(moleFragment, geneFragment);
                 if (temp > scoreMatrix[i][j]) {
                     scoreMatrix[i][j] = temp;
@@ -204,31 +205,21 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
     }
 
     double max = INIT_SCORE;
-    for (int j = 0; j < cols; ++j) {
-        if (scoreMatrix[mole._distance.size()][j] > max) {
-            max = scoreMatrix[mole._distance.size()][j];
-            mole.mapRet.alignMolePosition.second = mole._distance.size();
-            mole.mapRet.alignGenePosition.second = j;
-        }
-        double insertPunish1 = probInsertion(1);
-        if (scoreMatrix[mole._distance.size() - 1][j] + insertPunish1 > max) {
-            max = scoreMatrix[mole._distance.size() - 1][j] + insertPunish1;
-            mole.mapRet.alignMolePosition.second = mole._distance.size() - 1;
-            mole.mapRet.alignGenePosition.second = j;
-        }
-        double insertPunish2 = probInsertion(2);
-        if (scoreMatrix[mole._distance.size() - 2][j] + insertPunish2 > max) {
-            max = scoreMatrix[mole._distance.size() - 2][j] + insertPunish2;
-            mole.mapRet.alignMolePosition.second = mole._distance.size() - 2;
-            mole.mapRet.alignGenePosition.second = j;
+    for (int i = 0; i < MAX_MISS_MATCH; ++ i) {
+        for (int j = 0; j < cols; ++ j) {
+            if (scoreMatrix[mole._distance.size() - i][j] + insertPunish * i > max) {
+                max = scoreMatrix[mole._distance.size() - i][j] + insertPunish * i;
+                mole.mapRet.alignMolePosition.second = mole._distance.size() - i;
+                mole.mapRet.alignGenePosition.second = j;
+            }
         }
     }
+
     int pi = mole.mapRet.alignMolePosition.second, pj = mole.mapRet.alignGenePosition.second;
     while(true) {
         int pii = pi, pjj = pj;
         pi = backTrace[pii][pjj].first, pj = backTrace[pii][pjj].second;
         if (pi == -1 && pj == -1) {
-            //have gotten the head
             mole.mapRet.alignMolePosition.first = pii;
             mole.mapRet.alignGenePosition.first = pjj;
             break;
@@ -289,8 +280,8 @@ bool Map::initParameters(const std::string& parameter_file) {
         LOG4CXX_WARN(logger, boost::format("%s is not existed.") % parameter_file);
         return false;
     }
-    for (boost::property_tree::ptree::const_iterator it = parameters.begin(); it != parameters.end(); it++){
-       _parameters[it->first] = boost::lexical_cast<double> (it->second.data());
+    for (boost::property_tree::ptree::const_iterator it = parameters.begin(); it != parameters.end(); it++) {
+        _parameters[it->first] = boost::lexical_cast<double> (it->second.data());
     }
     return true;
 }
