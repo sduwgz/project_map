@@ -62,7 +62,7 @@ bool Map::run(MoleSet& moleSet, const Gene& gene) const {
         };
         wholeDPscore(moleSet[i], gene._distance);
         wholeDPscore(moleSet[i + 1], gene._distance);
-        if (moleSet[i].mapRet.score == INIT_SCORE && moleSet[i + 1].mapRet.score == INIT_SCORE) {
+        if (moleSet[i].mapRet.score <= INIT_SCORE && moleSet[i + 1].mapRet.score <= INIT_SCORE) {
             LOG4CXX_DEBUG(logger, boost::format("%s and %s can not map head to tail") % (moleSet[i]._id) % moleSet[i + 1]._id);
         }
     }
