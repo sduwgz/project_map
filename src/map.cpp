@@ -25,6 +25,7 @@ typedef std::pair< int, int > BackTrace;
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
 bool Map::multiRun(MoleSet& moleSet, const Gene& gene, int threadNumber) const {
+    std::cout << moleSet[0]._id << std::endl;
     int block = moleSet.size() / threadNumber + 1;
     MoleSet *moleSetPtr = &moleSet;
     boost::thread_group group;
