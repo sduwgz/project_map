@@ -1,5 +1,5 @@
-#ifndef MAP_H
-#define MAP_H
+#ifndef map_h_
+#define map_h_
 
 #include <vector>
 #include <string>
@@ -31,4 +31,4 @@ public:
 private:
     ParametersList _parameters;
 };
-#endif  /*MAP_H*/
+#endif  //map_h_

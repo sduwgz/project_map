@@ -1,5 +1,5 @@
-#ifndef GENE_H
-#define GENE_H
+#ifndef gene_h_
+#define gene_h_
 
 #include <vector>
 #include <iostream>
@@ -25,4 +25,4 @@ public:
 private:
     std::istream& _stream;
 };
-#endif  /*GENE_H*/
+#endif  //gene_h_

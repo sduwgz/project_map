@@ -1,5 +1,5 @@
-#ifndef mole_h__
-#define mole_h__
+#ifndef mole_h_
+#define mole_h_
 
 #include <vector>
 #include <iostream>

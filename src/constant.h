@@ -20,4 +20,4 @@ extern const double INIT_SCORE;
 extern const int UNIT_LENGTH;
 extern const int MAX_DELETION;
 
-#endif
+#endif //contant_h_
