@@ -9,6 +9,7 @@
 
 
 typedef std::vector< int > Fragment;
+typedef std::vector< double > PunishScore;
 typedef std::vector< Mole > MoleSet;
 typedef std::map<std::string, double> ParametersList;
 
@@ -16,6 +17,7 @@ class Map {
 public:
      Map(){};
      bool initParameters(const std::string &parameter_file);
+     void initPunishScore();
      bool multiRun(MoleSet& moleSet, const Gene& gene, int threadNumber) const;
      bool start(MoleSet* moleSetPtr, const Gene& gene, int i, int block) const;
      bool run(MoleSet& moleSet, const Gene& gene) const;
@@ -30,5 +32,9 @@ public:
      double probBackground(int delta) const;
 private:
     ParametersList _parameters;
+    PunishScore _insertionScore;
+    PunishScore _deletionScore;
+    PunishScore _laplaceScore;
+    PunishScore _backgroundScore;
 };
 #endif  /*MAP_H*/

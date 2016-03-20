@@ -79,10 +79,23 @@ double Map::validScore(const Fragment& moleFragment, const Fragment& geneFragmen
     int moleSiteNumber = moleFragment.size() - 1;
     int geneSiteNumber = geneFragment.size() - 1;
 
+    if (delta > 100000) {
+        delta = 100000;
+    }
+    int deleteNumber = static_cast< int > ((geneSiteNumber + 0.0) / moleLength * UNIT_LENGTH + 0.5);
+    if (deleteNumber < 1) {
+        deleteNumber = 1;
+    } else if (deleteNumber > MAX_DELETION) {
+        deleteNumber = MAX_DELETION;
+    }
+    std::cout << delta << std::endl;
+    LOG4CXX_DEBUG(logger, boost::format("_laplaceScore: %s, _backgroundScore: %s, _insertionScore: %s, _deletionScore: %s") % _laplaceScore[delta] %_backgroundScore[delta] %_insertionScore[moleSiteNumber] %_deletionScore[deleteNumber]);
+    
+
     if (moleSiteNumber != 0 || geneSiteNumber != 0) {
-        return probLaplace(delta) + probDeletion(geneSiteNumber, moleLength) + probInsertion(moleSiteNumber) - probBackground(delta);
+        return _laplaceScore[delta] + _deletionScore[deleteNumber] + _insertionScore[moleSiteNumber] - _backgroundScore[delta];
     } else {
-        return probLaplace(delta)  - probBackground(delta);
+        return _laplaceScore[delta]  - _backgroundScore[delta];
         //return laplace(delta) + pI(0) + pD(0, moleLength) - background(delta);
     }
 }
@@ -284,4 +297,16 @@ bool Map::initParameters(const std::string& parameter_file) {
         _parameters[it->first] = boost::lexical_cast<double> (it->second.data());
     }
     return true;
+}
+void Map::initPunishScore() {
+    for (int i = 0; i < MAX_MISS_MATCH + 1; ++ i) {
+        _insertionScore.push_back(probInsertion(i));
+    }
+    for (int i = 0; i < MAX_DELETION + 1; ++ i) {
+        _deletionScore.push_back(probDeletion(i, UNIT_LENGTH));
+    }
+    for (int i = 0; i <= 100000; ++ i) {
+        _laplaceScore.push_back(probLaplace(i));
+        _backgroundScore.push_back(probBackground(i));
+    }
 }
