@@ -16,5 +16,5 @@ ADD_EXECUTABLE(map ${MAP_LIST})
 
 target_link_libraries(map boost_filesystem boost_system boost_thread log4cxx)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -o2 -std=c++11 -g -Wno-unused-variable -pthread -lboost_system -lboost_filesystem -llog4cxx")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -o2 -std=c++11 -g -Wno-unused-variable -pthread -lboost_system -lboost_filesystem -llog4cxx -pg")
 INSTALL(TARGETS map RUNTIME DESTINATION bin)
