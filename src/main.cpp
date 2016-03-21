@@ -101,9 +101,9 @@ int main(int argc, char* argv[]) {
         LOG4CXX_WARN(logger, boost::format("%s, init parameter error.") % parameter_file);
         return 1;
     }
-    //maptool.multiRun(moleSet, g, thread_number);
     maptool.initPunishScore();
     maptool.run(moleSet, g);
+    //maptool.multiRun(moleSet, g, thread_number);
     maptool.printScore(moleSet);
     maptool.output(out_file, moleSet);
     
