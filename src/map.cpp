@@ -76,13 +76,33 @@ double Map::validScore(const Fragment& moleFragment, const Fragment& geneFragmen
     geneLength = std::accumulate(geneFragment.begin(), geneFragment.end(), 0);
 
     int delta = moleLength - geneLength;
+    int delta_laplace = abs(moleLength - geneLength - 46);
+    int delta_background = abs(moleLength - geneLength - 1870);
 
     int moleSiteNumber = moleFragment.size() - 1;
     int geneSiteNumber = geneFragment.size() - 1;
 
+    if (delta_laplace > 100000) {
+        delta_laplace = 100000;
+    }
+    if (delta_background > 100000) {
+        delta_background = 100000;
+    }
+    int deleteNumber = static_cast< int > ((geneSiteNumber + 0.0) / moleLength * UNIT_LENGTH + 0.5);
+    if (deleteNumber < 1) {
+        deleteNumber = 1;
+    } else if (deleteNumber > MAX_DELETION) {
+        deleteNumber = MAX_DELETION;
+    }
+    //LOG4CXX_DEBUG(logger, boost::format("_laplaceScore: %s, _backgroundScore: %s, _insertionScore: %s, _deletionScore: %s") % _laplaceScore[delta] %_backgroundScore[delta] %_insertionScore[moleSiteNumber] %_deletionScore[deleteNumber]);
+    //LOG4CXX_DEBUG(logger, boost::format("probLaplace: %s, probBackground: %s, probInsertion: %s, probDeletion: %s") % probLaplace(delta) %probBackground(delta) %probInsertion(moleSiteNumber) %probDeletion(geneSiteNumber, geneLength));
+    
+
     if (moleSiteNumber != 0 || geneSiteNumber != 0) {
+        //return _laplaceScore[delta_laplace] + _deletionScore[deleteNumber] + _insertionScore[moleSiteNumber] - _backgroundScore[delta_background];
         return probLaplace(delta) + probDeletion(geneSiteNumber, moleLength) + probInsertion(moleSiteNumber) - probBackground(delta);
     } else {
+        //return _laplaceScore[delta_laplace]  - _backgroundScore[delta_background];
         return probLaplace(delta)  - probBackground(delta);
         //return laplace(delta) + pI(0) + pD(0, moleLength) - background(delta);
     }
@@ -112,7 +132,7 @@ double Map::probInsertion(int k) const {
 double Map::probBackground(int delta) const {
     double mu = _parameters.find("mu_background")->second;
     double sigma = _parameters.find("sigma_background")->second;
-    boost::math::normal_distribution<> n(mu, sigma);
+    boost::math::normal_distribution<> n(0, sigma);
     int distance = delta - mu;
     int d = distance / Interval;
     int interval_left = d * Interval;
@@ -127,7 +147,8 @@ double Map::probBackground(int delta) const {
 double Map::probLaplace(int delta) const {
     double mu = _parameters.find("mu_laplace")->second;
     double sigma = _parameters.find("sigma_laplace")->second;
-    boost::math::laplace_distribution<> l(mu, sigma);
+    //boost::math::laplace_distribution<> l(mu, sigma);
+    boost::math::laplace_distribution<> l(0, sigma);
     int distance = delta - mu;
     int d = distance / Interval;
     int interval_left = d * Interval;
@@ -278,4 +299,16 @@ bool Map::initParameters(const std::string& parameter_file) {
         _parameters[it->first] = boost::lexical_cast<double> (it->second.data());
     }
     return true;
+}
+void Map::initPunishScore() {
+    for (int i = 0; i < MAX_MISS_MATCH + 1; ++ i) {
+        _insertionScore.push_back(probInsertion(i));
+    }
+    for (int i = 0; i < MAX_DELETION + 1; ++ i) {
+        _deletionScore.push_back(probDeletion(i, UNIT_LENGTH));
+    }
+    for (int i = 0; i <= 100000; ++ i) {
+        _laplaceScore.push_back(probLaplace(i));
+        _backgroundScore.push_back(probBackground(i));
+    }
 }
