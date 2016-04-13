@@ -102,8 +102,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     maptool.initPunishScore();
-    maptool.run(moleSet, g);
-    //maptool.multiRun(moleSet, g, thread_number);
+    //maptool.run(moleSet, g);
+    maptool.multiRun(moleSet, g, thread_number);
     maptool.printScore(moleSet);
     maptool.output(out_file, moleSet);
     

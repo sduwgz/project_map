@@ -35,7 +35,7 @@ bool MoleReader::read(Mole& mole) {
         moleQX01,
         moleQX02,
     };
-
+    reset(mole);
     int state = moleId;
     std::string buf;
     std::vector<std::string> data;

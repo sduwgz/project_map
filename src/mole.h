@@ -27,12 +27,12 @@ public:
     virtual ~Mole() {}
     bool getDistance(); 
     Mole reverseMole();    
-    MapRet mapRet;
 public:
     int _id;
     std::vector < long > _position;
     std::vector < int > _distance;
     std::vector < int > _mapPosition;
+    MapRet mapRet;
     friend class MoleReader;
 };
 
@@ -40,6 +40,12 @@ class MoleReader {
 public:
     MoleReader(std::istream& stream) : _stream(stream) {};
     bool read(Mole& mole);
+    void reset(Mole& mole) {
+        mole._id = -1;
+        mole._distance.clear();
+        mole._position.clear();
+        mole._mapPosition;
+    }
 
 private:
     std::istream& _stream;

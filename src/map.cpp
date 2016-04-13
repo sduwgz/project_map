@@ -25,7 +25,6 @@ typedef std::pair< int, int > BackTrace;
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
 bool Map::multiRun(MoleSet& moleSet, const Gene& gene, int threadNumber) const {
-    std::cout << moleSet[0]._id << std::endl;
     int block = moleSet.size() / threadNumber + 1;
     MoleSet *moleSetPtr = &moleSet;
     boost::thread_group group;
@@ -49,23 +48,19 @@ bool Map::start(MoleSet* moleSetPtr, const Gene& gene, int i, int block) const {
         if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) {
             LOG4CXX_DEBUG(logger, boost::format("mole %s is too short.") % (moleSet[i]._id));
             continue;
-        };
+        }
         wholeDPscore(moleSet[i], gene._distance);
     }
     return true;
 }
 
 bool Map::run(MoleSet& moleSet, const Gene& gene) const {
-    for (int i = 0; i < moleSet.size(); i += 2) {
+    for (int i = 0; i < moleSet.size(); ++i) {
         if (moleSet[i]._distance.size() < MIN_MATCH_NUMBER) {
             LOG4CXX_DEBUG(logger, boost::format("mole %s is too short.") % (moleSet[i]._id));
             continue;
-        };
-        wholeDPscore(moleSet[i], gene._distance);
-        wholeDPscore(moleSet[i + 1], gene._distance);
-        if (moleSet[i].mapRet.score <= INIT_SCORE && moleSet[i + 1].mapRet.score <= INIT_SCORE) {
-            LOG4CXX_DEBUG(logger, boost::format("%s and %s can not map head to tail") % (moleSet[i]._id) % moleSet[i + 1]._id);
         }
+        wholeDPscore(moleSet[i], gene._distance);
     }
     return true;
 }
@@ -75,35 +70,30 @@ double Map::validScore(const Fragment& moleFragment, const Fragment& geneFragmen
     moleLength = std::accumulate(moleFragment.begin(), moleFragment.end(), 0);
     geneLength = std::accumulate(geneFragment.begin(), geneFragment.end(), 0);
 
-    int delta = moleLength - geneLength;
-    int delta_laplace = abs(moleLength - geneLength - 46);
-    int delta_background = abs(moleLength - geneLength - 1870);
+    int delta = moleLength - geneLength + 100000;
+    if (delta < 0) {
+        delta = 0;
+    }
+    if (delta > 200000) {
+        delta = 200000;
+    }
 
     int moleSiteNumber = moleFragment.size() - 1;
     int geneSiteNumber = geneFragment.size() - 1;
 
-    if (delta_laplace > 100000) {
-        delta_laplace = 100000;
-    }
-    if (delta_background > 100000) {
-        delta_background = 100000;
-    }
     int deleteNumber = static_cast< int > ((geneSiteNumber + 0.0) / moleLength * UNIT_LENGTH + 0.5);
     if (deleteNumber < 1) {
         deleteNumber = 1;
     } else if (deleteNumber > MAX_DELETION) {
         deleteNumber = MAX_DELETION;
     }
-    //LOG4CXX_DEBUG(logger, boost::format("_laplaceScore: %s, _backgroundScore: %s, _insertionScore: %s, _deletionScore: %s") % _laplaceScore[delta] %_backgroundScore[delta] %_insertionScore[moleSiteNumber] %_deletionScore[deleteNumber]);
-    //LOG4CXX_DEBUG(logger, boost::format("probLaplace: %s, probBackground: %s, probInsertion: %s, probDeletion: %s") % probLaplace(delta) %probBackground(delta) %probInsertion(moleSiteNumber) %probDeletion(geneSiteNumber, geneLength));
-    
 
     if (moleSiteNumber != 0 || geneSiteNumber != 0) {
-        //return _laplaceScore[delta_laplace] + _deletionScore[deleteNumber] + _insertionScore[moleSiteNumber] - _backgroundScore[delta_background];
-        return probLaplace(delta) + probDeletion(geneSiteNumber, moleLength) + probInsertion(moleSiteNumber) - probBackground(delta);
+        return _laplaceScore[delta] + _deletionScore[deleteNumber] + _insertionScore[moleSiteNumber] - _backgroundScore[delta];
+        //return probLaplace(delta) + probDeletion(geneSiteNumber, moleLength) + probInsertion(moleSiteNumber) - probBackground(delta);
     } else {
-        //return _laplaceScore[delta_laplace]  - _backgroundScore[delta_background];
-        return probLaplace(delta)  - probBackground(delta);
+        return _laplaceScore[delta]  - _backgroundScore[delta];
+        //return probLaplace(delta)  - probBackground(delta);
         //return laplace(delta) + pI(0) + pD(0, moleLength) - background(delta);
     }
 }
@@ -269,7 +259,7 @@ void Map::output(const std::string& filename, const std::vector< Mole >& moleSet
     out.open(filename.c_str());
 
     for (int i = 0; i<moleSet.size(); ++ i) {
-        out << moleSet[i]._id << "\t" << "\t" << moleSet[i].mapRet.score << "\t"
+        out << moleSet[i]._id << "\t" << moleSet[i].mapRet.score << "\t"
             << moleSet[i].mapRet.alignStartPosition.first << "\t" << moleSet[i].mapRet.alignEndPosition.first << "\t" << moleSet[i].mapRet.alignStartPosition.second << "\t" << moleSet[i].mapRet.alignEndPosition.second << "\n";
         for (int j = 0; j<moleSet[i].mapRet.moleMapPosition.size(); ++ j) {
             out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignFragmentLength[j].first << "\t" << moleSet[i].mapRet.alignFragmentLength[j].second << "\n";
@@ -279,7 +269,7 @@ void Map::output(const std::string& filename, const std::vector< Mole >& moleSet
 void Map::printScore(const MoleSet& moleSet) const {
     for (int i = 0; i < moleSet.size(); ++ i) {
         Mole mole = moleSet[i];
-        std::cout << mole._id << "\t" << mole.mapRet.score << "\t" << mole.mapRet.alignStartPosition.first + 1 << "\t" <<  mole.mapRet.alignEndPosition.first + 1 << "\t" << mole.mapRet.alignStartPosition.second << "\t" <<  mole.mapRet.alignEndPosition.second << std::endl;
+        std::cout << mole._id << "\t" << mole.mapRet.score << "\t" << mole.mapRet.alignStartPosition.second + 1 << "\t" <<  mole.mapRet.alignEndPosition.second + 1 << "\t" << mole.mapRet.alignStartPosition.first << "\t" <<  mole.mapRet.alignEndPosition.first << std::endl;
     }
 }
 bool Map::initParameters(const std::string& parameter_file) {
@@ -307,8 +297,8 @@ void Map::initPunishScore() {
     for (int i = 0; i < MAX_DELETION + 1; ++ i) {
         _deletionScore.push_back(probDeletion(i, UNIT_LENGTH));
     }
-    for (int i = 0; i <= 100000; ++ i) {
-        _laplaceScore.push_back(probLaplace(i));
-        _backgroundScore.push_back(probBackground(i));
+    for (int i = 0; i <= 200000; ++ i) {
+        _laplaceScore.push_back(probLaplace(i - 100000));
+        _backgroundScore.push_back(probBackground(i - 100000));
     }
 }
