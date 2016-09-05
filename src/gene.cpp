@@ -27,7 +27,7 @@ bool GeneReader::read(Gene& gene) {
         boost::algorithm::trim(buf);
         if (buf.empty()) continue;
         if(boost::algorithm::starts_with(buf, "#")) continue;
-        boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" "), boost::algorithm::token_compress_on);
+        boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
         if (boost::lexical_cast< int > (data[0]) == 1) {
             gene._position.push_back(static_cast< int > (boost::lexical_cast< double > (data[5])));
         } else {

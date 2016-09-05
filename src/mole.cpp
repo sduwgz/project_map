@@ -41,9 +41,11 @@ bool MoleReader::read(Mole& mole) {
     std::vector<std::string> data;
     while (std::getline(_stream, buf)) {
         boost::algorithm::trim(buf);
+        LOG4CXX_DEBUG(logger, boost::format("line: %s") % buf);
+
         if (buf.empty()) continue;
         if (state == moleId) {
-            boost::algorithm::split(data, buf, boost::algorithm::is_any_of("\t"), boost::algorithm::token_compress_on);
+            boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
             if (boost::lexical_cast<int>(data[0]) == 0) {
                 mole._id = boost::lexical_cast<int> (data[1]);
                 state = molePosition;
@@ -52,12 +54,12 @@ bool MoleReader::read(Mole& mole) {
                 return false;
             }
         } else if (state == molePosition) {
-            data = boost::algorithm::split(data, buf, boost::algorithm::is_any_of("\t"), boost::algorithm::token_compress_on);
+            data = boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
             if (boost::lexical_cast<int>(data[0]) == 1) {
                 for (int i = 1; i < data.size(); ++ i) {
                     mole._position.push_back(static_cast< long > (boost::lexical_cast< double >(data[i])));
                 }
-                if (mole._position.size() > 0) {
+                if (mole._position.size() > 1) {
                     mole.getDistance();
                 }
                 state = moleQX01;

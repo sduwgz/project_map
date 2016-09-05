@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
             LOG4CXX_WARN(logger, boost::format("load %s failed.") % gene_file);
             return 1;
         } else {
-            LOG4CXX_DEBUG(logger, boost::format("load %s successed.") % gene_file);
+            LOG4CXX_INFO(logger, boost::format("load %s successed.") % gene_file);
         }
     } else {
         LOG4CXX_WARN(logger, boost::format("%s is not existed.") % gene_file);
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
             LOG4CXX_WARN(logger, "no mole is in moleSet");
             return 1;
         } else {
-            LOG4CXX_DEBUG(logger, boost::format("%s moles have been inited.") % mole_number);
+            LOG4CXX_INFO(logger, boost::format("%s moles have been inited.") % mole_number);
         }
     } else {
         LOG4CXX_WARN(logger, boost::format("%s is not existed.") % mole_file);
