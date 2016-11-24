@@ -28,12 +28,8 @@ bool GeneReader::read(Gene& gene) {
         if (buf.empty()) continue;
         if(boost::algorithm::starts_with(buf, "#")) continue;
         boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
-        if (boost::lexical_cast< int > (data[0]) == 1) {
-            gene._position.push_back(static_cast< int > (boost::lexical_cast< double > (data[5])));
-        } else {
-            LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for gene file: %s") % buf);
-            return false;
-        }
+        LOG4CXX_INFO(logger, boost::format("bnx=>the ref id is: %s") % data[0]);
+        gene._position.push_back(static_cast< int > (boost::lexical_cast< double > (data[5])));
     }
     gene.getDistance();
     return true;
