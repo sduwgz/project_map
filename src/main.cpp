@@ -21,7 +21,7 @@ typedef std::vector< Mole > MoleSet;
 
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("map.main"));
 
-static const char *opt_string = "m:g:o:c:p:t:";
+static const char *opt_string = "m:g:o:c:p:t:r:";
 
 
 int printHelps() {
@@ -30,7 +30,7 @@ int printHelps() {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 4) {
+    if (argc < 5) {
         return printHelps();
     }
 
@@ -56,56 +56,59 @@ int main(int argc, char* argv[]) {
 
    
     Gene g;
-    std::string gene_file = options.get< std::string >("g", "");
-    if (boost::filesystem::exists(gene_file)) {
-        std::ifstream geneInstream(gene_file.c_str());
+    std::string geneFile = options.get< std::string >("g", "");
+    if (boost::filesystem::exists(geneFile)) {
+        std::ifstream geneInstream(geneFile.c_str());
         GeneReader gReader(geneInstream);
         if (!gReader.read(g)) {
-            LOG4CXX_WARN(logger, boost::format("load %s failed.") % gene_file);
+            LOG4CXX_WARN(logger, boost::format("load %s failed.") % geneFile);
             return 1;
         } else {
-            LOG4CXX_INFO(logger, boost::format("load %s successed.") % gene_file);
+            LOG4CXX_INFO(logger, boost::format("load %s successed.") % geneFile);
         }
     } else {
-        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % gene_file);
+        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % geneFile);
         return 1;
     }
     MoleSet moleSet;
-    std::string mole_file = options.get< std::string >("m", "");
-    if (boost::filesystem::exists(mole_file)) {
-        std::ifstream moleInstream(mole_file.c_str());
+    std::string moleFile = options.get< std::string >("m", "");
+    std::string reverseLabel = options.get< std::string >("r", "1");
+    if (boost::filesystem::exists(moleFile)) {
+        std::ifstream moleInstream(moleFile.c_str());
         MoleReader mReader(moleInstream);
         Mole m;
         while (mReader.read(m)) {
             moleSet.push_back(m);
-            Mole reMole = m.reverseMole();
-            moleSet.push_back(reMole);
+            if (reverseLabel == "1") {
+                Mole reMole = m.reverseMole();
+                moleSet.push_back(reMole);
+            }
         }
-        int mole_number = moleSet.size();
-        if (mole_number == 0) {
+        int moleNumber = moleSet.size();
+        if (moleNumber == 0) {
             LOG4CXX_WARN(logger, "no mole is in moleSet");
             return 1;
         } else {
-            LOG4CXX_INFO(logger, boost::format("%s moles have been inited.") % mole_number);
+            LOG4CXX_INFO(logger, boost::format("%s moles have been inited.") % moleNumber);
         }
     } else {
-        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % mole_file);
+        LOG4CXX_WARN(logger, boost::format("%s is not existed.") % moleFile);
         return 1;
     }
-    std::string out_file = options.get< std::string >("o", defaultOutFile);
-    std::string parameter_file = options.get< std::string >("p", defaultParameterFile);
-    int thread_number = boost::lexical_cast<int> (options.get< std::string >("t", "4"));
+    std::string outFile = options.get< std::string >("o", defaultOutFile);
+    std::string parameterFile = options.get< std::string >("p", defaultParameterFile);
+    int threadNumber = boost::lexical_cast<int> (options.get< std::string >("t", "4"));
     
     Map maptool;
-    if (!maptool.initParameters(parameter_file)) {
-        LOG4CXX_WARN(logger, boost::format("%s, init parameter error.") % parameter_file);
+    if (!maptool.initParameters(parameterFile)) {
+        LOG4CXX_WARN(logger, boost::format("%s, init parameter error.") % parameterFile);
         return 1;
     }
     maptool.initPunishScore();
     //maptool.run(moleSet, g);
-    maptool.multiRun(moleSet, g, thread_number);
+    maptool.multiRun(moleSet, g, threadNumber);
     maptool.printScore(moleSet);
-    maptool.output(out_file, moleSet);
+    maptool.output(outFile, moleSet);
     
     return 1;
 }

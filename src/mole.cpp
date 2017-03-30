@@ -11,7 +11,7 @@ static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("mole.main"));
 
 Mole Mole::reverseMole() {
     Mole reMole;
-    reMole._id = -_id;
+    reMole._id = "(-)" + _id;
     reMole._distance.assign(_distance.begin(), _distance.end());
     reverse(reMole._distance.begin(), reMole._distance.end());
     return reMole;
@@ -47,7 +47,7 @@ bool MoleReader::read(Mole& mole) {
         if (state == moleId) {
             boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
             if (boost::lexical_cast<int>(data[0]) == 0) {
-                mole._id = boost::lexical_cast<int> (data[1]);
+                mole._id = data[1];
                 state = molePosition;
             } else {
                 LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole id: %s") % mole._id);

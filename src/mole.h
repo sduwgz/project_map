@@ -2,6 +2,7 @@
 #define mole_h_
 
 #include <vector>
+#include <string>
 #include <iostream>
 
 #include "constant.h"
@@ -22,13 +23,13 @@ struct MapRet {
 class Mole {
 public:
     Mole() {} 
-    explicit Mole(size_t id) : _id(id) {
+    explicit Mole(std::string id) : _id(id) {
     }
     virtual ~Mole() {}
     bool getDistance(); 
     Mole reverseMole();    
 public:
-    int _id;
+    std::string _id;
     std::vector < long > _position;
     std::vector < int > _distance;
     std::vector < int > _mapPosition;
@@ -41,7 +42,7 @@ public:
     MoleReader(std::istream& stream) : _stream(stream) {};
     bool read(Mole& mole);
     void reset(Mole& mole) {
-        mole._id = -1;
+        mole._id = "";
         mole._distance.clear();
         mole._position.clear();
         mole._mapPosition;
