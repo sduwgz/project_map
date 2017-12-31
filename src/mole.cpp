@@ -74,4 +74,5 @@ bool MoleReader::read(Mole& mole) {
             return true;
         }
     }
+    return false;
 }
