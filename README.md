@@ -1,1 +1,1 @@
-##nanoDP is an alignment tool for bionano optical maps.
+## nanoDP is an alignment tool for bionano optical maps.
