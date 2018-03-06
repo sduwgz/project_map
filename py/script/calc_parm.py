@@ -19,7 +19,7 @@ if __name__ == '__main__':
     delta = []
     count = 0
     for line in ifilter(lambda x: len(x) > 0, imap(string.strip, sys.stdin)):
-        if len(line.split()) == 7:
+        if abs(int(line.split()[0])) > 200:
             mole_id = int(line.split()[0])
             if mole_id in settled_mole:
                 state = 1
@@ -27,6 +27,8 @@ if __name__ == '__main__':
                 state = 0
         else:
             count += 1
+            if count > 100000:
+                break
             if state == 1:
                 insert.append(int(line.split()[1]) - int(line.split()[0]))
                 insert.append(int((int(line.split()[3]) - int(line.split()[2]) + 0.0) / int(line.split()[4]) * 10000 + 0.5))
@@ -46,11 +48,11 @@ if __name__ == '__main__':
     print stat
     print insert_array.mean()
     print insert_array.var()
-'''
     delta_array = numpy.array(delta)
     
     print delta_array.mean()
     print delta_array.var() ** 0.5
+    '''
     stat = [0] * 7
     for i in insert:
         stat[i] += 1
