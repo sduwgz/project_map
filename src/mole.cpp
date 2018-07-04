@@ -40,6 +40,7 @@ bool MoleReader::read(Mole& mole) {
     std::string buf;
     std::vector<std::string> data;
     while (std::getline(_stream, buf)) {
+        if(buf.size() == 0 || buf[0] == '#') continue;
         boost::algorithm::trim(buf);
         LOG4CXX_DEBUG(logger, boost::format("line: %s") % buf);
 
@@ -56,11 +57,8 @@ bool MoleReader::read(Mole& mole) {
         } else if (state == molePosition) {
             data = boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
             if (boost::lexical_cast<int>(data[0]) == 1) {
-                for (int i = 1; i < data.size(); ++ i) {
+                for (int i = 1; i < data.size() - 1; ++ i) {
                     mole._position.push_back(static_cast< long > (boost::lexical_cast< double >(data[i])));
-                }
-                if (mole._position.size() > 1) {
-                    mole.getDistance();
                 }
                 state = moleQX01;
             } else {
@@ -68,6 +66,32 @@ bool MoleReader::read(Mole& mole) {
                 return false;
             }
         } else if (state == moleQX01) {
+            data = boost::algorithm::split(data, buf, boost::algorithm::is_any_of(" \t"), boost::algorithm::token_compress_on);
+            if (data[0] == "QX11") {
+                std::vector<double> qx11;
+                for (int i = 1; i < data.size(); ++ i) {
+                    qx11.push_back(static_cast< long > (boost::lexical_cast< double >(data[i])));
+                }
+                int l = 0;
+                double theta = 3;
+                //filter sites by QX11 score. There needs a parameter theta.
+                if(qx11.size() == mole._position.size()) {
+                    for(int i = 0; i < mole._position.size(); ++ i) {
+                        if(qx11[i] >= theta) {
+                            mole._position[l ++] = mole._position[i];
+                        }
+                    }
+                    mole._position.resize(l);
+                }
+                if (mole._position.size() > 1) {
+                    mole.getDistance();
+                }
+                state = moleQX02;
+            } else {
+                LOG4CXX_WARN(logger, boost::format("bnx=>invalid line for mole QX11: %s") % buf);
+                return false;
+            }
+
             state = moleQX02;
         } else if (state == moleQX02) {
             state = moleId;
