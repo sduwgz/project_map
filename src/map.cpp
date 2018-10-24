@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <fstream>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -152,8 +153,8 @@ double Map::probLaplace(int delta) const {
 
 bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
     int rows = mole._distance.size() + 1, cols = gene.size() + 1;
-    double scoreMatrix[rows][cols];
-    BackTrace  backTrace[rows][cols];
+    std::vector<std::vector<double>> scoreMatrix(rows, std::vector<double>(cols, 0));
+    std::vector<std::vector<BackTrace>> backTrace(rows, std::vector<std::pair<int, int>>(cols, {0, 0}));
     for (int i = 0; i < rows; ++ i) {
         for (int j = 0; j < cols; ++ j) {
             scoreMatrix[i][j] = INIT_SCORE;
@@ -236,10 +237,20 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
             break;
         }
 
+        std::string f1, f2;
+        for(int i = pi; i < pii; ++ i) {
+            f1 += std::to_string(mole._distance[i]);
+            f1 += ",";
+        }
+        for(int i = pj; i < pjj; ++ i) {
+            f2 += std::to_string(gene[i]);
+            f2 += ",";
+        }
         int moleFragmentLength = accumulate(mole._distance.begin() + pi, mole._distance.begin() + pii, 0);
         int geneFragmentLength = accumulate(gene.begin() + pj, gene.begin() + pjj, 0);
 
         mole.mapRet.alignFragmentLength.push_back(std::make_pair(moleFragmentLength, geneFragmentLength));
+        mole.mapRet.alignFragmentCond.push_back(std::make_pair(f1, f2));
 
         mole.mapRet.moleMapPosition.push_back(std::make_pair(pi, pii - 1));
         mole.mapRet.geneMapPosition.push_back(std::make_pair(pj, pjj - 1));
@@ -249,6 +260,7 @@ bool Map::wholeDPscore(Mole& mole, const std::vector<int>& gene) const {
     reverse(mole.mapRet.moleMapPosition.begin(), mole.mapRet.moleMapPosition.end());
     reverse(mole.mapRet.geneMapPosition.begin(), mole.mapRet.geneMapPosition.end());
     reverse(mole.mapRet.alignFragmentLength.begin(), mole.mapRet.alignFragmentLength.end());
+    reverse(mole.mapRet.alignFragmentCond.begin(), mole.mapRet.alignFragmentCond.end());
 
     mole.mapRet.score = max;
     return true;
@@ -262,7 +274,7 @@ void Map::output(const std::string& filename, const std::vector< Mole >& moleSet
         out << moleSet[i]._id << "\t" << moleSet[i].mapRet.score << "\t"
             << moleSet[i].mapRet.alignStartPosition.first << "\t" << moleSet[i].mapRet.alignEndPosition.first << "\t" << moleSet[i].mapRet.alignStartPosition.second << "\t" << moleSet[i].mapRet.alignEndPosition.second << "\n";
         for (int j = 0; j<moleSet[i].mapRet.moleMapPosition.size(); ++ j) {
-            out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignFragmentLength[j].first << "\t" << moleSet[i].mapRet.alignFragmentLength[j].second << "\n";
+            out << moleSet[i].mapRet.moleMapPosition[j].first << "\t" << moleSet[i].mapRet.moleMapPosition[j].second << "\t" << moleSet[i].mapRet.geneMapPosition[j].first << "\t" << moleSet[i].mapRet.geneMapPosition[j].second << "\t" << moleSet[i].mapRet.alignFragmentCond[j].first << "\t" << moleSet[i].mapRet.alignFragmentCond[j].second << "\n";
         }
     }
 }
