@@ -75,8 +75,8 @@ bool MoleReader::read(Mole& mole) {
                 int l = 0;
                 double theta = 3;
                 //filter sites by QX11 score. There needs a parameter theta.
-                if(qx11.size() == mole._position.size()) {
-                    for(int i = 0; i < mole._position.size(); ++ i) {
+                if(qx11.size() == mole._position.size() - 1) {
+                    for(int i = 0; i < qx11.size(); ++ i) {
                         if(qx11[i] >= theta) {
                             mole._position[l ++] = mole._position[i];
                         }
