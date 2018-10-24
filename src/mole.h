@@ -8,12 +8,14 @@
 #include "constant.h"
 
 typedef std::vector< std::pair< int , int > > FragmentLength;
+typedef std::vector< std::pair< std::string , std::string > > FragmentCond;
 typedef std::vector< std::pair< int , int > > MapPosition;
 typedef std::pair < int , int > AlignPosition;
 
 struct MapRet {   
     double score;
     FragmentLength alignFragmentLength;
+    FragmentCond alignFragmentCond;
     AlignPosition alignStartPosition;
     AlignPosition alignEndPosition;
     MapPosition moleMapPosition;
